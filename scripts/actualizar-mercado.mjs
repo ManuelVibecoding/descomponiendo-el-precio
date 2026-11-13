@@ -4,6 +4,7 @@
 // Actualiza `mercado` (último cierre) y `semanas` (promedio lunes a viernes de la semana en curso y
 // de las semanas marcadas como parciales). No toca precios oficiales (paridad, banda, impuesto, UTM):
 // esos los actualiza la tarea semanal de los jueves.
+// - Precio en estación: Bencina en Línea (CNE), promedio de la RM; recalcula el margen de estación.
 // Uso: node scripts/actualizar-mercado.mjs   Si una fuente falla, deja ese dato como estaba.
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -96,11 +97,56 @@ if (brent && Object.keys(fx).length) {
   A.semanas = sem.slice(-6);
 }
 
+// ---- precios en estación: Bencina en Línea (CNE), API pública sin clave.
+// Promedio de la Región Metropolitana con las estaciones que actualizaron su precio en la semana de
+// la vigencia actual (desde el jueves de vigencia hasta el miércoles siguiente). Así, el jueves en
+// que cambia el mayorista no se mezclan precios nuevos con el mayorista anterior. El margen de
+// estación queda como promedio real menos mayorista.
+async function bencinaEnLinea() {
+  const r = await fetch('https://api.bencinaenlinea.cl/api/busqueda_estacion_filtro', { headers: UA, signal: AbortSignal.timeout(60000) });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const d = (await r.json()).data;
+  if (!Array.isArray(d) || !d.length) throw new Error('respuesta sin estaciones');
+  return d;
+}
+const est = await intentar('Bencina en Línea', bencinaEnLinea);
+if (est && A.vigencia) {
+  const desde = A.vigencia, hasta = sumar(A.vigencia, 7);
+  const RM = est.filter(s => /Metropolitana/.test(s.region || ''));
+  const MARCAS = { 5: 'copec', 4: 'shell', 151: 'aramco' };
+  const CODIGO = { g93: '93', g95: '95', g97: '97', diesel: 'DI' };
+  const cuantil = (xs, q) => { const a = [...xs].sort((x, y) => x - y), i = (a.length - 1) * q, b = Math.floor(i); return Math.round(a[b] + (a[Math.min(b + 1, a.length - 1)] - a[b]) * (i - b)); };
+  // p05 y p95: rango donde está el 90% de las estaciones (evita datos anómalos de una sola estación)
+  const C = A.combustibles, res = { fecha: hoyCL, desde, n: {}, promedio: {}, p05: {}, p95: {}, marcas: { copec: {}, shell: {}, aramco: {} } };
+  for (const [f, cod] of Object.entries(CODIGO)) {
+    const vals = [], porMarca = { copec: [], shell: [], aramco: [] };
+    for (const s of RM) {
+      const c = (s.combustibles || []).find(x => x.nombre_corto === cod), p = +(c?.precio);
+      const fch = (c?.precio_fecha || '').slice(0, 10);
+      if (!p || p < 500 || p > 3000 || fch < desde || fch >= hasta) continue;
+      vals.push(p); const m = MARCAS[s.marca]; if (m) porMarca[m].push(p);
+    }
+    res.n[f] = vals.length;
+    if (vals.length < 100) { avisos.push(`Bencina en Línea ${f}: solo ${vals.length} estaciones con precio de esta semana; el margen no cambia`); continue; }
+    const p = prom(vals);
+    res.promedio[f] = Math.round(p); res.p05[f] = cuantil(vals, 0.05); res.p95[f] = cuantil(vals, 0.95);
+    for (const m of Object.keys(porMarca)) if (porMarca[m].length >= 10) res.marcas[m][f] = Math.round(prom(porMarca[m]));
+    const may = f === 'g95' ? (C.g93.mayorista + C.g97.mayorista) / 2 : C[f].mayorista;
+    const margen = Math.round((p - may) * 10) / 10;
+    if (margen < 30 || margen > 160) { avisos.push(`margen ${f} fuera de rango (${margen}); no se cambia`); continue; }
+    C[f].margen = margen;
+  }
+  A.estaciones = res;
+  const i = (A.supuestos || []).findIndex(t => t.startsWith('Precios en bomba'));
+  if (i >= 0 && res.n.g93 >= 100) A.supuestos[i] = `Precios en bomba = promedio de la Región Metropolitana según Bencina en Línea (CNE), con las estaciones que informaron su precio desde el ${desde.split('-').reverse().join('-')} (${res.n.g93} en la 93). El margen de distribución y estación es ese promedio menos el precio mayorista estimado. Cada estación cobra distinto: en la RM, 9 de cada 10 estaciones venden la 93 entre $${res.p05.g93.toLocaleString('es-CL')} y $${res.p95.g93.toLocaleString('es-CL')}.`;
+}
+
 const cambio = JSON.stringify(A) !== antes;
 if (cambio) {
   m.actualizado = new Date().toISOString();
   writeFileSync(RUTA, JSON.stringify(A, null, 2) + '\n');
 }
 console.log(`${cambio ? 'Actualizado' : 'Sin cambios'} · Brent ${m.brent} (${m.fecha}) · dólar ${m.fx} (${m.fxFecha ?? '—'}) · semanas: ${A.semanas.map(w => w.lunes.slice(5) + (w.parcial ? '*' : '')).join(' ')}`);
+if (A.estaciones) console.log(`Estaciones RM (${A.estaciones.fecha}): ` + Object.entries(A.estaciones.promedio).map(([f, v]) => `${f} $${v} (n ${A.estaciones.n[f]}, margen ${A.combustibles[f].margen})`).join(' · '));
 if (avisos.length) console.log('Avisos:\n- ' + avisos.join('\n- '));
 if (!brent && !Object.keys(fx).length) process.exit(1);

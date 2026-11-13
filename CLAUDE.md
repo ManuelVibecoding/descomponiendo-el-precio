@@ -26,7 +26,8 @@ Proyecto de Manuel Amenábar. Página estática que explica y proyecta el precio
 
 ## Actualización diaria automática (GitHub Actions)
 - `.github/workflows/mercado-diario.yml` corre martes a sábado a las 08:15 de Santiago (también a mano desde la pestaña Actions) y ejecuta `scripts/actualizar-mercado.mjs`, luego `validar.mjs`, y hace commit "Mercado diario AAAA-MM-DD".
-- Fuentes sin clave: Yahoo Finance (futuros BZ=F, CL=F, RB=F, HO=F, solo sesiones cerradas) y la tabla del dólar observado del SII (`sii.cl/valores_y_fechas/dolar/dolarAAAA.htm`).
+- Fuentes sin clave: Yahoo Finance (futuros BZ=F, CL=F, RB=F, HO=F, solo sesiones cerradas), la tabla del dólar observado del SII (`sii.cl/valores_y_fechas/dolar/dolarAAAA.htm`) y la API pública de Bencina en Línea de la CNE (`api.bencinaenlinea.cl/api/busqueda_estacion_filtro`; marcas: 5 Copec, 4 Shell, 151 Aramco).
+- Precio en estación: promedio de la RM con las estaciones que informaron su precio en la semana de la vigencia (desde el jueves de `vigencia` hasta el miércoles siguiente). Se guarda en `estaciones` (n, promedio, p05, p95 y promedio por marca) y recalcula `margen` = promedio − mayorista (95: promedio − promedio de mayoristas 93 y 97). Si hay menos de 100 estaciones o el margen queda fuera de 30–160, no cambia el margen y avisa.
 - Actualiza `mercado` (último cierre) y `semanas` (promedio lunes a viernes de la semana en curso, marcada `parcial` hasta que termina). No toca semanas cerradas ni precios oficiales.
 - Cerca del cambio de contrato de fin de mes, el futuro continuo de Yahoo puede diferir unos dólares del Brent ICE que usa la CNE. Si un promedio semanal se ve raro, corregirlo a mano en la tarea del jueves.
 - Como hay commits diarios del bot, siempre hacer `git pull --rebase` antes de editar.
@@ -39,7 +40,7 @@ Proyecto de Manuel Amenábar. Página estática que explica y proyecta el precio
 5. `semanas` y `mercado` los mantiene la actualización diaria. Solo revisar que estén al día (si no, correr `node scripts/actualizar-mercado.mjs`) y que los promedios semanales sean razonables.
 6. Si la actualización diaria falló varios días, revisar la pestaña Actions del repositorio y avisar a Manuel.
 7. `congelamiento`: estado actual del proyecto de ley (o de la ley) en una o dos frases.
-8. Si se encuentra el precio promedio en estaciones de la RM: `margen` = precio − mayorista (95: precio − promedio de mayoristas 93 y 97).
+8. `margen` y `estaciones` los calcula la actualización diaria con Bencina en Línea. Después de cambiar `vigencia` y `mayorista`, correr `node scripts/actualizar-mercado.mjs`: si todavía hay pocas estaciones con precio nuevo, el margen queda como estaba y el proceso diario lo ajusta al día siguiente.
 9. Recalibrar: `vigencia`, `actualizado`, `cvUTM`; `premio` = (mayorista − (iebUTM + cvUTM) × utm/1000)/1,19 − paridad (si queda fuera de −20 a 40, no cambiarlo y avisar); agregar a `base` el valor mayorista − cvUTM × utm/1000 y conservar 3; dejar en `proximasFijaciones` solo fechas futuras, cada 3 semanas.
 10. `node scripts/validar.mjs`. Si pasa, commit `Datos semana AAAA-MM-DD` y push a `main`.
 11. Mandar a Manuel un resumen corto: variación ENAP, componente variable, paridad vs techo de banda, Brent y dólar, estado del congelamiento, con enlaces a las fuentes.

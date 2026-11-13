@@ -32,6 +32,7 @@ for (const f of ['g93', 'g97', 'diesel']) {
   const dif = calc - c.mayorista;
   if (Math.abs(dif) > 3) avisos.push(`${f}: el mayorista no cuadra por $${dif.toFixed(1)}/L; recalcular premio`);
   if (c.premio < -20 || c.premio > 40) avisos.push(`${f}: premio fuera de rango (${c.premio})`);
+  if (c.margen < 30 || c.margen > 160) avisos.push(`${f}: margen de estación fuera de rango (${c.margen})`);
 }
 num(A.combustibles?.g95?.margen, 'g95.margen');
 if (!Array.isArray(H.filas) || !H.filas.length) errores.push('historial.filas vacío');

@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Traer Brent, WTI, RBOB, ULSD y dólar observado
+      - name: Traer Brent, WTI, RBOB, ULSD, dólar observado y precios en estación
         run: node scripts/actualizar-mercado.mjs
       - name: Validar datos
         run: node scripts/validar.mjs

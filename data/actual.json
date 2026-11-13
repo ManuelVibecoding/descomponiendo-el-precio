@@ -39,7 +39,7 @@
     "fx": 984.49,
     "nota": "Brent, WTI, RBOB y ULSD: futuros, cierre diario (Yahoo Finance). Dólar observado: SII. Se actualizan solos cada día hábil.",
     "fxFecha": "2026-11-12",
-    "actualizado": "2026-11-13T15:16:08.453Z"
+    "actualizado": "2026-11-13T16:46:49.990Z"
   },
   "refBanda": {
     "fecha": "2026-11-12",
@@ -55,7 +55,7 @@
       "cvUTM": -0.3852,
       "iebUTM": 6,
       "mayorista": 1502.3,
-      "margen": 80.7,
+      "margen": 81.1,
       "premio": 7.1,
       "base": [
         {
@@ -105,7 +105,7 @@
       "cvUTM": -2.2784,
       "iebUTM": 1.5,
       "mayorista": 1516.9,
-      "margen": 90.1,
+      "margen": 89.8,
       "premio": 14.1,
       "base": [
         {
@@ -123,7 +123,7 @@
       ]
     },
     "g95": {
-      "margen": 88.2
+      "margen": 88.4
     }
   },
   "proximasFijaciones": [
@@ -146,7 +146,7 @@
     }
   },
   "supuestos": [
-    "Precios en bomba = promedio de la Región Metropolitana según Bencina en Línea (CNE), estaciones con precio actualizado el 12 o 13-11-2026 (unas 390 por combustible). El margen de distribución y estación se calcula como ese promedio menos el precio mayorista estimado. Cada estación cobra distinto: en la RM la 93 va de unos $1.510 a $1.640.",
+    "Precios en bomba = promedio de la Región Metropolitana según Bencina en Línea (CNE), con las estaciones que informaron su precio desde el 12-11-2026 (386 en la 93). El margen de distribución y estación es ese promedio menos el precio mayorista estimado. Cada estación cobra distinto: en la RM, 9 de cada 10 estaciones venden la 93 entre $1.526 y $1.633.",
     "La paridad usa precios Argus que no son públicos. El modelo la reemplaza por Brent (futuros ICE) más un diferencial que se recalibra con cada decreto de la CNE.",
     "La banda de referencia se proyecta con la deriva semanal de la CNE y el peso de los futuros del Brent. Hacienda puede cambiar los parámetros n, m, s y alfa, como hizo varias veces en 2026.",
     "Desde el 30-07-2026 Hacienda aplicó el MEPCO con criterio discrecional. La proyección sigue la regla de la ley (umbral 2,4% y banda ±5%).",
@@ -160,5 +160,53 @@
     "OCEC-UDP, boletines MEPCO",
     "Yahoo Finance (futuros) para Brent, WTI, RBOB y ULSD, y SII para el dólar observado: actualización automática cada día hábil",
     "Bencina en Línea (CNE), precios por estación de servicio (api.bencinaenlinea.cl), 13-11-2026"
-  ]
+  ],
+  "estaciones": {
+    "fecha": "2026-11-13",
+    "desde": "2026-11-12",
+    "n": {
+      "g93": 386,
+      "g95": 386,
+      "g97": 363,
+      "diesel": 388
+    },
+    "promedio": {
+      "g93": 1583,
+      "g95": 1629,
+      "g97": 1681,
+      "diesel": 1607
+    },
+    "p05": {
+      "g93": 1526,
+      "g95": 1568,
+      "g97": 1608,
+      "diesel": 1564
+    },
+    "p95": {
+      "g93": 1633,
+      "g95": 1682,
+      "g97": 1732,
+      "diesel": 1649
+    },
+    "marcas": {
+      "copec": {
+        "g93": 1583,
+        "g95": 1627,
+        "g97": 1678,
+        "diesel": 1607
+      },
+      "shell": {
+        "g93": 1586,
+        "g95": 1632,
+        "g97": 1682,
+        "diesel": 1606
+      },
+      "aramco": {
+        "g93": 1587,
+        "g95": 1637,
+        "g97": 1688,
+        "diesel": 1612
+      }
+    }
+  }
 }

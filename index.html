@@ -721,7 +721,8 @@ function render(){
 
   // ---- 1
   countTo($('#p-now'), now.total);
-  $('#p-unit').textContent='por litro, promedio estimado en la Región Metropolitana';
+  const E=D.estaciones, nE=E?.n?.[fuel];
+  $('#p-unit').textContent = E && E.promedio?.[fuel] ? `por litro, promedio de ${nf0.format(nE)} estaciones de la Región Metropolitana (Bencina en Línea, ${ddmm(E.fecha)})` : 'por litro, promedio estimado en la Región Metropolitana';
   $('#h-q').textContent=`¿Cuánto cuesta hoy un litro de ${fl}?`;
   // impuestos que realmente se pagan: IVA + impuesto específico neto (base + ajuste del MEPCO)
   const ien = now.ieb + now.ajuste, tx = now.iva + ien, txp = nf0.format(tx/now.total*100);
@@ -733,7 +734,7 @@ function render(){
       : aj > 0.5 ? ` Ese impuesto específico incluye un recargo de ${money(aj)} que el Estado cobra esta semana con el MEPCO.` : '');
   $('#s1-text').innerHTML = `De cada litro, <b>${money(now.petroleo+now.refinar)}</b> es lo que cuesta el combustible puesto en Chile y <b>${money(now.estacion)}</b> se lo llevan la distribución y la estación.`+taxTxt;
   $('#barrel1').setAttribute('aria-label',`Barril con la composición del precio de ${fname}: petróleo ${money(now.petroleo)}, refinar y traer ${money(now.refinar)}, estación ${money(now.estacion)}, IVA ${money(now.iva)}, impuesto específico neto ${money(ien)}, del cual ${money(aj)} es el ajuste del MEPCO.`);
-  $('#cap1').innerHTML=`<b>Gráfico 1.</b> Composición del precio por litro, ${fl}, vigente desde el ${ddmmyy(D.vigencia)}. Cada franja es una parte del precio, de abajo hacia arriba en el orden en que se suma. La franja rayada es el ajuste del MEPCO sobre el impuesto específico; el impuesto específico se rotula neto de ese ajuste y los porcentajes, sobre el precio final, suman 100%. Fuente: CNE, SII, ENAP; margen de estación estimado.`;
+  $('#cap1').innerHTML=`<b>Gráfico 1.</b> Composición del precio por litro, ${fl}, vigente desde el ${ddmmyy(D.vigencia)}. Cada franja es una parte del precio, de abajo hacia arriba en el orden en que se suma. La franja rayada es el ajuste del MEPCO sobre el impuesto específico; el impuesto específico se rotula neto de ese ajuste y los porcentajes, sobre el precio final, suman 100%. Fuente: CNE (incluye Bencina en Línea para el precio en estación), SII, ENAP; la división entre petróleo y refinación es una estimación del modelo.`;
 
   // ---- 2
   const sN = fuel==='diesel';
@@ -916,6 +917,14 @@ function renderMkt(){
   add('Diésel ULSD (US$/galón)',m.ulsd!=null?nf2.format(m.ulsd):null,'Aproxima el diésel del Golfo de EE.UU.');
   add('Dólar observado ($)',m.fx!=null?nf2.format(m.fx):null,'Banco Central');
   add('UTM del mes ($)',nf0.format(D.utm),'SII');
+  const E=D.estaciones;
+  if(E && E.promedio){
+    const lab={g93:'Bencina 93',g95:'Bencina 95',g97:'Bencina 97',diesel:'Diésel'};
+    Object.keys(lab).forEach(f=>{ if(!E.promedio[f]) return;
+      const mk=['copec','shell','aramco'].filter(m=>E.marcas?.[m]?.[f]).map(m=>m.charAt(0).toUpperCase()+m.slice(1)+' $'+nf0.format(E.marcas[m][f])).join(' · ');
+      add(lab[f]+' en estación, RM ($/L)', '$'+nf0.format(E.promedio[f])+(mk?'<span class="d">'+mk+'</span>':''), 'Bencina en Línea (CNE), '+nf0.format(E.n[f])+' estaciones al '+ddmmyy(E.fecha)+'; 9 de cada 10 entre $'+nf0.format(E.p05[f])+' y $'+nf0.format(E.p95[f]));
+    });
+  }
   (D.semanas||[]).forEach(w=>add('Semana del '+ddmm(w.lunes)+(w.parcial?' (en curso)':''),'Brent '+nf2.format(w.brent)+' · dólar '+nf2.format(w.fx),'Promedio semanal'));
   $('#t-mkt').innerHTML=`<thead><tr><th>Indicador</th><th>Valor</th><th>Para qué sirve</th></tr></thead><tbody>${rows.join('')}</tbody>`+`<tfoot><tr><td colspan="3" class="muted small" style="font-weight:400">Cierre del ${m.fecha?ddmmyy(m.fecha):'—'}. Brent y dólar se actualizan cada día hábil; los precios oficiales, cada jueves.</td></tr></tfoot>`;
 }
