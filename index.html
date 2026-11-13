@@ -450,6 +450,12 @@ function parts(f, mode, p=P){
   const iva=0.19*(petroleo+refinar+m);
   return {petroleo, refinar, estacion:m, impuestos:ieb+iva, ieb, iva, ajuste, total:petroleo+refinar+m+ieb+iva+ajuste};
 }
+// Lo que se muestra debe cuadrar a la vista: partes en pesos enteros que suman exacto el precio redondeado.
+// La diferencia de redondeo (uno o dos pesos) queda en "refinar", que ya es una estimación del modelo.
+const cuadra = o => { const r={...o}; ['petroleo','estacion','iva','ieb','ajuste','total'].forEach(k=>r[k]=Math.round(o[k]));
+  r.refinar=r.total-r.petroleo-r.estacion-r.iva-r.ieb-r.ajuste; r.impuestos=r.ieb+r.iva; return r; };
+// Variación entre dos precios tal como se ven redondeados ("de $1.583 a $1.548" es bajar $35).
+const dif = (a,b) => Math.round(b)-Math.round(a);
 const parInst = (f,p=P) => f==='g95' ? (parInst('g93',p)+parInst('g97',p))/2 : (p.brent+CAL.S[f]+dS(f,p))*p.fx/L;
 
 // ================= estructura =================
@@ -712,7 +718,7 @@ function renderTrad(){
   const v=$('#tr-var').value, s=+$('#tr-dir').value, a=+$('#tr-amt').value, p={...P0};
   if(v==='brent') p.brent+=s*a; else p.fx+=s*a;
   const fl=NAME[fuel].toLowerCase(), full=parts(fuel,'pleno',p).total-parts(fuel,'pleno',P0).total;
-  const p0=SIM0.pump(fuel,0,false), d0=SIM0.pump(fuel,3,false)-p0, d1=simulate(p).pump(fuel,3,false)-p0, nx=d1-d0, fecha=longDate(SIM0.T[3]);
+  const p0=SIM0.pump(fuel,0,false), d0=dif(p0,SIM0.pump(fuel,3,false)), d1=dif(p0,simulate(p).pump(fuel,3,false)), nx=d1-d0, fecha=longDate(SIM0.T[3]);
   const verbo = d => d>0?'subir':'bajar';
   // variación de la próxima fijación en infinitivo: "subir $39", "bajar $36", "no cambiar"
   const inf = d => Math.abs(d)<0.5 ? 'no cambiar' : (d>0?'subir ':'bajar ')+money(Math.abs(d));
@@ -773,7 +779,7 @@ function renderLoc(){
 }
 function renderHero(){
   renderTrad(); renderLoc();
-  const now=parts(fuel,'hoy'), T=SIM0.T, p0=SIM0.pump(fuel,0,false), p1=SIM0.pump(fuel,3,false), d=p1-p0, aj=now.ajuste, m=D.mercado||{};
+  const now=parts(fuel,'hoy'), T=SIM0.T, p0=SIM0.pump(fuel,0,false), p1=SIM0.pump(fuel,3,false), d=dif(p0,p1), aj=Math.round(now.ajuste), m=D.mercado||{};
   const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
   $('#keys').innerHTML=[
     ['Próxima fijación (reglas actuales)', cap(move(d)), cls(d), longDate(T[3])+(Math.abs(d)<0.5?'':': de '+money(p0)+' a '+money(p1))+', si el Brent y el dólar se mantienen'],
@@ -783,7 +789,7 @@ function renderHero(){
 }
 function render(){
   SIM=simulate(P);
-  const now=parts(fuel,'hoy'), full=parts(fuel,'pleno');
+  const raw=parts(fuel,'hoy'), now=cuadra(raw), full=parts(fuel,'pleno');
   const c = fuel==='g95'?null:D.combustibles[fuel];
   const fname = NAME[fuel], fl = fname.toLowerCase().replace('bencina','bencina');
 
@@ -827,7 +833,7 @@ function render(){
   $('#o-sg').textContent='US$ '+nf0.format(CAL.S.g93+P.dSg);
   $('#o-sd').textContent='US$ '+nf0.format(CAL.S.diesel+P.dSd);
   $('#o-m').textContent='$'+nf0.format(margin(fuel));
-  const gap=full.total-now.total, pi=parInst(fuel);
+  const gap=full.total-raw.total, pi=parInst(fuel);
   $('#result').innerHTML=`<div><span class="k">Precio de hoy</span><span class="v">${money(now.total)}</span></div>
     <div><span class="k">Con tus valores, traspaso completo</span><span class="v">${money(full.total)}</span></div>
     <div><span class="k">Diferencia</span><span class="v ${cls(gap)}">${Math.abs(gap)<0.5?'0':delta(gap)}</span></div>`;
@@ -835,7 +841,7 @@ function render(){
   drawBarrels();
   $('#leg2').innerHTML=SEG.map(([,n,c])=>`<span><span class="sw" style="background:var(${c})"></span>${n}</span>`).join('')+`<span><span class="sw adj"></span>Ajuste del MEPCO</span>`;
   $('#cap2').innerHTML=`<b>Gráfico 2.</b> Precio de ${fl} hoy y con un Brent de US$${nf1.format(P.brent)} y un dólar de $${nf0.format(P.fx)} traspasados completos, sin ajuste del Estado. Costo de importar con tus valores: ${money(pi)} por litro.`;
-  const nx = SIM.pump(fuel,3,false)-now.total;
+  const nx = dif(now.total, SIM.pump(fuel,3,false));
   $('#s3-text').innerHTML = Math.abs(gap)<3
     ? `Con estos valores el precio de hoy ya refleja el costo. No debería moverse mucho.`
     : `Si el Brent y el dólar se quedaran en estos valores, ${art()} ${fl} ${gap>0?'debería subir':'debería bajar'} <b>${money(Math.abs(gap))}</b> por litro. Ese cambio no llega de golpe: el MEPCO lo reparte en tramos cada tres semanas. En la próxima fijación (${longDate(SIM.T[3])}) ${Math.abs(nx)<0.5?'no cambiaría':(nx>0?'subiría':'bajaría')+' unos <b>'+money(Math.abs(nx))+'</b>'}.`;
@@ -845,7 +851,7 @@ function render(){
   // ---- 4
   renderFuture();
   // ---- anexo
-  renderSens(); renderTech(now,full); renderProj();
+  renderSens(); renderTech(raw,full); renderProj();
 }
 
 const ICONS = [
@@ -878,7 +884,7 @@ function renderFuture(anim){
   const T=SIM.T, s=SIM.f[fuel];
   const pump=s.M.map((v,k)=>SIM.pump(fuel,k,false)), pumpF=s.MF.map((v,k)=>SIM.pump(fuel,k,true));
   const fix=T.map((t,i)=>i).filter(i=>i>0&&i%3===0);
-  const k1=fix[0], d1=pump[k1]-pump[0];
+  const k1=fix[0], d1=dif(pump[0],pump[k1]);
   const fl=NAME[fuel].toLowerCase();
   $('#s4-text').innerHTML=`ENAP cambia sus precios cada tres semanas. La próxima fijación es el <b>${longDate(T[k1])}</b>. Con los valores del punto 2, ${art()} ${fl} <b>${move(d1)}</b> ${Math.abs(d1)<0.5?'':`(de ${money(pump[0])} a ${money(pump[k1])})`}.`;
   const fr=D.congelamiento||{};
