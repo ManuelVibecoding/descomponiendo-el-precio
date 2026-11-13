@@ -655,7 +655,8 @@ function barrelSVG(el, o, opt={}){
   g+=`<ellipse cx="${cx+bw*0.22}" cy="${yT}" rx="${bw*0.06}" ry="${ry*0.28}" style="fill:var(--steel-dk)" stroke="#000" stroke-opacity=".3"/>`;
   // total sobre la tapa
   const tot = full ? o.total : bands.reduce((a,b)=>a+b.v,0);
-  g+=`<text${anim?' class="lbl" style="--i:6"':''} x="${cx}" y="${yT-ry-10}" text-anchor="middle" style="font-size:${labels?17:16}px;font-weight:700;fill:var(--ink)">${opt.namesOnly?'':(opt.topLabel?opt.topLabel+' ':'')+money(tot)}</text>`;
+  // un solo atributo style: con dos, el navegador ignora el segundo y el texto pierde color y tamaño
+  g+=`<text${anim?' class="lbl"':''} x="${cx}" y="${yT-ry-12}" text-anchor="middle" style="${anim?'--i:6;':''}font-family:var(--f-head);font-size:${labels?22:18}px;font-weight:700;fill:var(--ink)">${opt.namesOnly?'':(opt.topLabel?opt.topLabel+' ':'')+money(tot)}</text>`;
   // etiquetas con línea guía
   if(labels){
     // Con el barril completo, el impuesto específico se rotula neto del ajuste del MEPCO y los
