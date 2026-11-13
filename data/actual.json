@@ -55,7 +55,7 @@
       "cvUTM": -0.3852,
       "iebUTM": 6,
       "mayorista": 1502.3,
-      "margen": 63.4,
+      "margen": 80.7,
       "premio": 7.1,
       "base": [
         {
@@ -80,7 +80,7 @@
       "cvUTM": -1.445,
       "iebUTM": 6,
       "mayorista": 1579.3,
-      "margen": 79.4,
+      "margen": 101.7,
       "premio": 7.1,
       "base": [
         {
@@ -105,7 +105,7 @@
       "cvUTM": -2.2784,
       "iebUTM": 1.5,
       "mayorista": 1516.9,
-      "margen": 70,
+      "margen": 90.1,
       "premio": 14.1,
       "base": [
         {
@@ -123,7 +123,7 @@
       ]
     },
     "g95": {
-      "margen": 51.9
+      "margen": 88.2
     }
   },
   "proximasFijaciones": [
@@ -146,7 +146,7 @@
     }
   },
   "supuestos": [
-    "Precios en bomba = promedio estimado de la Región Metropolitana: precio previo al 12-11 (La Tercera / Bencina en Línea) más el alza informada por ENAP. El diésel en bomba es una estimación con margen de $70/L.",
+    "Precios en bomba = promedio de la Región Metropolitana según Bencina en Línea (CNE), estaciones con precio actualizado el 12 o 13-11-2026 (unas 390 por combustible). El margen de distribución y estación se calcula como ese promedio menos el precio mayorista estimado. Cada estación cobra distinto: en la RM la 93 va de unos $1.510 a $1.640.",
     "La paridad usa precios Argus que no son públicos. El modelo la reemplaza por Brent (futuros ICE) más un diferencial que se recalibra con cada decreto de la CNE.",
     "La banda de referencia se proyecta con la deriva semanal de la CNE y el peso de los futuros del Brent. Hacienda puede cambiar los parámetros n, m, s y alfa, como hizo varias veces en 2026.",
     "Desde el 30-07-2026 Hacienda aplicó el MEPCO con criterio discrecional. La proyección sigue la regla de la ley (umbral 2,4% y banda ±5%).",
@@ -158,6 +158,7 @@
     "ENAP, informe semanal de precios estimados (11-11-2026)",
     "Banco Central / SII, dólar observado",
     "OCEC-UDP, boletines MEPCO",
-    "Yahoo Finance (futuros) para Brent, WTI, RBOB y ULSD, y SII para el dólar observado: actualización automática cada día hábil"
+    "Yahoo Finance (futuros) para Brent, WTI, RBOB y ULSD, y SII para el dólar observado: actualización automática cada día hábil",
+    "Bencina en Línea (CNE), precios por estación de servicio (api.bencinaenlinea.cl), 13-11-2026"
   ]
 }
