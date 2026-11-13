@@ -1,4 +1,4 @@
-# Descomponiendo el precio del combustible (repositorio barril-a-bomba): instrucciones para Claude
+# Descomponiendo el precio del combustible: instrucciones para Claude
 
 Proyecto de Manuel Amenábar. Página estática que explica y proyecta el precio de las bencinas y el diésel en Chile. Se publica con GitHub Pages desde la rama `main`, carpeta raíz.
 
@@ -17,8 +17,8 @@ Proyecto de Manuel Amenábar. Página estática que explica y proyecta el precio
 - `scripts/servir.mjs`: servidor local para ver la página (`node scripts/servir.mjs`, luego http://localhost:8000).
 
 ## Publicación (configurada el 13-11-2026)
-- Repositorio: https://github.com/ManuelVibecoding/barril-a-bomba (cuenta ManuelVibecoding, no Manuel-vibecoder).
-- Página: https://manuelvibecoding.github.io/barril-a-bomba/ (GitHub Pages desde `main`, carpeta raíz).
+- Repositorio: https://github.com/ManuelVibecoding/descomponiendo-el-precio (cuenta ManuelVibecoding, no Manuel-vibecoder).
+- Página: https://manuelvibecoding.github.io/descomponiendo-el-precio/ (GitHub Pages desde `main`, carpeta raíz).
 - Carpeta local: `C:\Users\mjame\Desktop\Proyectos\barril-a-bomba`. El repositorio usa GitHub CLI (`C:\Program Files\GitHub CLI\gh.exe`) como credencial de git, configurado solo en este repo.
 - Las etiquetas `og:url` y `og:image` de `index.html` apuntan a la URL de Pages; si la URL cambia, actualizarlas.
 - `og.png` (vista previa al compartir, 1200x630) se genera desde la propia página en modo `?og`, sin cifras: con `node scripts/servir.mjs` corriendo, `msedge --headless=new --hide-scrollbars --window-size=1200,630 --screenshot=og.png "http://localhost:8000/?og"`. Si cambia, subir el `?v=` de `og:image` para que WhatsApp y LinkedIn la refresquen.

@@ -1,7 +1,5 @@
 # Descomponiendo el precio del combustible
 
-El repositorio y el link conservan su nombre original, barril-a-bomba.
-
 Cómo se forma el precio de la bencina y el diésel en Chile, desde el barril de petróleo hasta la estación, y qué viene en las próximas fijaciones.
 
 La página parte con una portada (precio de hoy, barril con su composición y tres cifras clave) y sigue en tres pasos:
@@ -40,6 +38,6 @@ node scripts/servir.mjs
 # abrir http://localhost:8000
 ```
 
-Página publicada: https://manuelvibecoding.github.io/barril-a-bomba/
+Página publicada: https://manuelvibecoding.github.io/descomponiendo-el-precio/
 
 Hecho por Manuel Amenábar.
