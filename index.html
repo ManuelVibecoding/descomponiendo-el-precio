@@ -8,7 +8,7 @@
 <meta property="og:description" content="Cómo se forma el precio de la bencina en Chile, paso a paso, con simulador y proyección semanal.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://manuelvibecoding.github.io/descomponiendo-el-precio/">
-<meta property="og:image" content="https://manuelvibecoding.github.io/descomponiendo-el-precio/og.png?v=3">
+<meta property="og:image" content="https://manuelvibecoding.github.io/descomponiendo-el-precio/og.png?v=4">
 <meta property="og:locale" content="es_CL">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1C355E">
@@ -22,7 +22,7 @@
 :root{
   --bg:#FFFFFF; --ink:#17202D; --muted:#5D6878; --rule:#DCE1E7; --soft:#F3F5F8;
   --navy:#1C355E; --accent:#8C2B25;
-  --s-oil:#1C355E; --s-ref:#2B8A99; --s-sta:#D9A23A; --s-tax:#8C2B25; --s-adj:#17202D;
+  --s-oil:#1C355E; --s-ref:#2B8A99; --s-sta:#D9A23A; --s-iva:#C98375; --s-tax:#8C2B25; --s-adj:#17202D;
   --up:#8C2B25; --down:#1C355E;
   --steel:#C7CFD9; --steel-dk:#8E99A8; --steel-lt:#E4E8ED; --shadow:rgba(20,30,45,.18);
   --hero-a:#E6EDF7; --hero-b:#F7F1E6; --tint:#F3F6FA; --glow:rgba(43,138,153,.16);
@@ -33,13 +33,13 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0F141B; --ink:#E5E9EF; --muted:#9BA6B5; --rule:#283241; --soft:#171E28;
   --navy:#9DB8E6; --accent:#E07F72;
-  --s-oil:#A9C2EC; --s-ref:#4DB0BD; --s-sta:#E2B456; --s-tax:#D06C5F; --s-adj:#E5E9EF;
+  --s-oil:#A9C2EC; --s-ref:#4DB0BD; --s-sta:#E2B456; --s-iva:#9A4C43; --s-tax:#D06C5F; --s-adj:#E5E9EF;
   --up:#E07F72; --down:#9DB8E6; --steel:#3B4553; --steel-dk:#252D38; --steel-lt:#55606F; --shadow:rgba(0,0,0,.5);
   --hero-a:#111B2A; --hero-b:#19160F; --tint:#141B25; --glow:rgba(77,176,189,.14); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0F141B; --ink:#E5E9EF; --muted:#9BA6B5; --rule:#283241; --soft:#171E28;
   --navy:#9DB8E6; --accent:#E07F72;
-  --s-oil:#A9C2EC; --s-ref:#4DB0BD; --s-sta:#E2B456; --s-tax:#D06C5F; --s-adj:#E5E9EF;
+  --s-oil:#A9C2EC; --s-ref:#4DB0BD; --s-sta:#E2B456; --s-iva:#9A4C43; --s-tax:#D06C5F; --s-adj:#E5E9EF;
   --up:#E07F72; --down:#9DB8E6; --steel:#3B4553; --steel-dk:#252D38; --steel-lt:#55606F; --shadow:rgba(0,0,0,.5);
   --hero-a:#111B2A; --hero-b:#19160F; --tint:#141B25; --glow:rgba(77,176,189,.14); color-scheme:dark}
 *{box-sizing:border-box}
@@ -81,6 +81,7 @@ b,strong{font-weight:600}
 .hero .lead{font-size:1.12rem;color:var(--ink);max-width:30em}
 .hero .q{font-family:var(--f-head);font-weight:600;font-size:1.08rem;margin-top:10px;padding-top:14px;border-top:1px solid var(--rule)}
 .hero .s1{font-size:.98rem;max-width:34em}
+.hero .s1 b{white-space:nowrap}
 .hfig figcaption{border-top-color:color-mix(in srgb,var(--rule) 70%,transparent)}
 .keys{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:2px solid var(--navy);margin-top:8px}
 .keys>div{padding:12px 16px 6px 0;display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -409,14 +410,16 @@ function parts(f, mode, p=P){
 const parInst = (f,p=P) => f==='g95' ? (parInst('g93',p)+parInst('g97',p))/2 : (p.brent+CAL.S[f]+dS(f,p))*p.fx/L;
 
 // ================= estructura =================
-const SEG = [['petroleo','Petróleo crudo','--s-oil'],['refinar','Refinarlo y traerlo a Chile','--s-ref'],['estacion','Distribución y estación','--s-sta'],['impuestos','Impuestos','--s-tax']];
+// Capas del precio, de abajo hacia arriba. El ajuste del MEPCO se dibuja aparte, rayado, sobre el impuesto específico.
+const SEG = [['petroleo','Petróleo crudo','--s-oil'],['refinar','Refinarlo y traerlo a Chile','--s-ref'],['estacion','Distribución y estación','--s-sta'],['iva','IVA (19%)','--s-iva'],['ieb','Impuesto específico','--s-tax']];
+const NSEG = SEG.length;
 
 function build(){
   $('#tabs').innerHTML = FUELS.map(f=>`<button type="button" data-fuel="${f}" aria-pressed="${f===fuel}" aria-label="${NAME[f]}">${f==='diesel'?'Diésel':`<span class="lg">Bencina </span>${SHORT[f]}`}</button>`).join('');
   $('#app').innerHTML = `
   <section class="step" id="s2">
     <div class="stephead"><span class="n">1</span><h2>¿De dónde sale cada parte?</h2></div>
-    <p class="text">El precio se arma en cinco etapas, en este orden. Toca cada etapa para ver cuánto agrega y cuánto va sumando el litro.</p>
+    <p class="text">El precio se arma en seis etapas, en este orden. Toca cada etapa para ver cuánto agrega y cuánto va sumando el litro.</p>
     <figure>
       <div class="flowwrap">
         <div class="flow" id="flow" role="group" aria-label="Etapas del precio"></div>
@@ -453,7 +456,7 @@ function build(){
         <div class="ctrl"><label for="in-sg">Refinar y traer la bencina <output id="o-sg"></output></label>
           <input type="range" id="in-sg" min="0" max="120" step="1"><span class="h">Cuánto más que el crudo cuesta la bencina refinada puesta en Chile, en US$ por barril (bencina 93; la 97 se mueve igual).</span></div>
         <div class="ctrl"><label for="in-sd">Refinar y traer el diésel <output id="o-sd"></output></label>
-          <input type="range" id="in-sd" min="0" max="160" step="1"><span class="h">Lo mismo para el diésel. Hoy está muy por sobre lo normal (US$25–40).</span></div>
+          <input type="range" id="in-sd" min="0" max="160" step="1"><span class="h">Lo mismo para el diésel. Hoy es mucho mayor que en la bencina.</span></div>
         <div class="ctrl"><label for="in-m">Margen de la estación <output id="o-m"></output></label>
           <input type="range" id="in-m" min="20" max="160" step="1"><span class="h">Pesos por litro, con IVA, para el combustible elegido. Varía por comuna.</span></div>
       </div></div>
@@ -544,13 +547,13 @@ function barHTML(o, scale){
 const posSum = o => o.petroleo+o.refinar+o.estacion+o.impuestos+Math.max(0,o.ajuste);
 
 // ---------- barril ilustrado (SVG) ----------
-// Franjas pintadas de abajo hacia arriba: petróleo, refinar, estación, impuestos. El ajuste del
+// Franjas pintadas de abajo hacia arriba: petróleo, refinar, estación, IVA e impuesto específico. El ajuste del
 // Estado se dibuja rayado (negativo: parte del impuesto que no se cobra). Lo no usado queda en acero.
 let BID=0;
 function barrelSVG(el, o, opt={}){
   const id='b'+(++BID);
   const Wd=Math.max(220, el.clientWidth||600);
-  const labels=opt.labels!==false, upto=opt.upto??4;
+  const labels=opt.labels!==false, upto=opt.upto??NSEG, full=upto>=NSEG;
   const H=opt.H||(labels?360:300);
   // opt.anim: llena el barril capa por capa; opt.animOnly: anima solo esa capa (diagrama de etapas)
   const anim=!!opt.anim, only=opt.animOnly, lay=i=>anim?` class="lay" style="--i:${i}"`:only===i?` class="lay" style="--i:0"`:'';
@@ -563,8 +566,8 @@ function barrelSVG(el, o, opt={}){
   const cx=bx+bw/2;
   const body=`M${bx},${yT} Q${bx-2*B},${(yT+yB)/2} ${bx},${yB} A${bw/2},${ry} 0 0 0 ${bx+bw},${yB} Q${bx+bw+2*B},${(yT+yB)/2} ${bx+bw},${yT} A${bw/2},${ry} 0 0 0 ${bx},${yT}Z`;
   const arc=(y,col,wd,op=1)=>`<path d="M${bx-xo(y)},${y} A${bw/2+xo(y)},${ry} 0 0 0 ${bx+bw+xo(y)},${y}" fill="none" stroke="${col}" stroke-width="${wd}" opacity="${op}"/>`;
-  const cols=['--s-oil','--s-ref','--s-sta','--s-tax'], keys=['petroleo','refinar','estacion','impuestos'];
-  const names=['Petróleo crudo','Refinarlo y traerlo','Distribución y estación','Impuestos'];
+  const cols=SEG.map(x=>x[2]), keys=SEG.map(x=>x[0]);
+  const names=['Petróleo crudo','Refinarlo y traerlo','Distribución y estación','IVA (19%)','Impuesto específico'];
   let g=`<defs>
     <clipPath id="${id}c"><path d="${body}"/></clipPath>
     <linearGradient id="${id}s" x1="0" x2="1" y1="0" y2="0">
@@ -584,10 +587,10 @@ function barrelSVG(el, o, opt={}){
     g+=`<g${lay(i)}><rect x="${bx-2*B}" y="${top}" width="${bw+4*B}" height="${y0-top}" style="fill:var(${cols[i]})"/></g>`; bands.push({i,top,bot,v,name:names[i]});
     y = top; });
   let fillTop=y, adjBand=null;
-  if(upto>=4 && Math.abs(o.ajuste)>0.5){
+  if(full && Math.abs(o.ajuste)>0.5){
     const h=Math.abs(o.ajuste)*s;
     const top = o.ajuste<0 ? fillTop : fillTop-h, bot = o.ajuste<0 ? fillTop+h : fillTop;
-    g+=`<g${lay(4)}><rect x="${bx-2*B}" y="${top}" width="${bw+4*B}" height="${bot-top}" fill="url(#${id}h)" opacity=".85"/></g>`;
+    g+=`<g${lay(NSEG)}><rect x="${bx-2*B}" y="${top}" width="${bw+4*B}" height="${bot-top}" fill="url(#${id}h)" opacity=".85"/></g>`;
     adjBand={top,bot}; if(o.ajuste>0) fillTop=top;
   }
   g+=`<rect x="${bx-2*B}" y="${yT-ry}" width="${bw+4*B}" height="${yB-yT+2*ry}" fill="url(#${id}s)"/>`;
@@ -605,18 +608,22 @@ function barrelSVG(el, o, opt={}){
   g+=`<ellipse cx="${cx}" cy="${yT+1.5}" rx="${bw/2*0.86}" ry="${ry*0.7}" fill="none" stroke="#000" stroke-opacity=".22" stroke-width="1.5"/>`;
   g+=`<ellipse cx="${cx+bw*0.22}" cy="${yT}" rx="${bw*0.06}" ry="${ry*0.28}" style="fill:var(--steel-dk)" stroke="#000" stroke-opacity=".3"/>`;
   // total sobre la tapa
-  const tot = upto>=4 ? o.total : bands.reduce((a,b)=>a+b.v,0);
-  g+=`<text${anim?' class="lbl" style="--i:5"':''} x="${cx}" y="${yT-ry-10}" text-anchor="middle" style="font-size:${labels?17:16}px;font-weight:700;fill:var(--ink)">${opt.namesOnly?'':(opt.topLabel?opt.topLabel+' ':'')+money(tot)}</text>`;
+  const tot = full ? o.total : bands.reduce((a,b)=>a+b.v,0);
+  g+=`<text${anim?' class="lbl" style="--i:6"':''} x="${cx}" y="${yT-ry-10}" text-anchor="middle" style="font-size:${labels?17:16}px;font-weight:700;fill:var(--ink)">${opt.namesOnly?'':(opt.topLabel?opt.topLabel+' ':'')+money(tot)}</text>`;
   // etiquetas con línea guía
   if(labels){
-    const lx=bx+bw+B+34, items=bands.map(b=>({y:(b.top+b.bot)/2,ey:(b.top+b.bot)/2,t:b.name,v:'$'+nf0.format(b.v)+(upto>=4?' · '+nf0.format(b.v/o.total*100)+'%':''),c:cols[b.i]}));
-    if(adjBand) items.push({y:(adjBand.top+adjBand.bot)/2,ey:(adjBand.top+adjBand.bot)/2,t:'Ajuste del Estado',v:(o.ajuste<0?'−':'+')+'$'+nf0.format(Math.abs(o.ajuste)),c:null});
+    // Con el barril completo, el impuesto específico se rotula neto del ajuste del MEPCO y los
+    // porcentajes son sobre el precio final, así que suman 100%.
+    const pct = v => { const p=Math.round(v/o.total*100); return (p<0?'−':'')+Math.abs(p)+'%'; };
+    const lx=bx+bw+B+34, items=bands.map(b=>{ const net = full && keys[b.i]==='ieb' ? b.v+o.ajuste : b.v;
+      return {y:(b.top+b.bot)/2,ey:(b.top+b.bot)/2,t:b.name+(full&&keys[b.i]==='ieb'&&Math.abs(o.ajuste)>0.5?' (neto)':''),v:money(net)+(full?' · '+pct(net):''),c:cols[b.i]}; });
+    if(adjBand) items.push({y:(adjBand.top+adjBand.bot)/2,ey:(adjBand.top+adjBand.bot)/2,t:o.ajuste<0?'Rebaja del MEPCO':'Recargo del MEPCO',v:(o.ajuste<0?'−':'+')+'$'+nf0.format(Math.abs(o.ajuste)),c:null});
     // separar etiquetas: de abajo hacia arriba, mínimo 38 px
     for(let i=1;i<items.length;i++) if(items[i-1].y-items[i].y<38) items[i].y=items[i-1].y-38;
     const minY=yT-ry+14; if(items.length && items[items.length-1].y<minY){ const d=minY-items[items.length-1].y; items.forEach(it=>it.y+=d); for(let i=items.length-2;i>=0;i--) if(items[i].y-items[i+1].y<38) items[i].y=items[i+1].y+38; }
     items.forEach((it,j)=>{
       const ex=bx+bw+xo(it.ey)+2;
-      g+=anim?`<g class="lbl" style="--i:${j}">`:only!=null&&j===items.length-1&&only<4?'<g class="lbl" style="--i:0">':'<g>';
+      g+=anim?`<g class="lbl" style="--i:${j}">`:only!=null&&j===items.length-1&&only<NSEG?'<g class="lbl" style="--i:0">':'<g>';
       g+=`<circle cx="${ex}" cy="${it.ey}" r="3" style="fill:var(--ink)"/><path d="M${ex},${it.ey} L${lx-18},${it.ey} L${lx-6},${it.y}" fill="none" style="stroke:var(--muted)" stroke-width="1"/>`;
       g+= it.c ? `<rect x="${lx}" y="${it.y-14}" width="10" height="10" style="fill:var(${it.c})"/>` : `<rect x="${lx}" y="${it.y-14}" width="10" height="10" fill="url(#${id}h)" style="stroke:var(--ink)" stroke-width=".8"/>`;
       g+= opt.namesOnly ? `<text x="${lx+16}" y="${it.y-3}" style="font-size:16px;font-weight:600;fill:var(--ink)">${it.t}</text></g>`
@@ -630,7 +637,7 @@ let SIM=null, SIM0=null, LAST=null, animNext=true;
 function drawBarrels(){
   if(!LAST) return; const {now,full}=LAST;
   barrelSVG($('#barrel1'), now, OG?{namesOnly:true,H:430}:{anim:animNext}); animNext=false;
-  barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<4?'Va en':''});
+  barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<NSEG?'Va en':''});
   const mx=Math.max(posSum(now),posSum(full))*1.04;
   barrelSVG($('#barrel3a'), now, {labels:false, max:mx, H:290});
   barrelSVG($('#barrel3b'), full, {labels:false, max:mx, H:290});
@@ -651,7 +658,7 @@ function renderHero(){
   const now=parts(fuel,'hoy'), T=SIM0.T, p0=SIM0.pump(fuel,0,false), p1=SIM0.pump(fuel,3,false), d=p1-p0, aj=now.ajuste, m=D.mercado||{};
   const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
   $('#keys').innerHTML=[
-    ['Próxima fijación, '+longDate(T[3]), cap(move(d)), cls(d), Math.abs(d)<0.5?'si el Brent y el dólar se mantienen':'de '+money(p0)+' a '+money(p1)+' si el Brent y el dólar se mantienen'],
+    ['Próxima fijación (reglas actuales)', cap(move(d)), cls(d), longDate(T[3])+(Math.abs(d)<0.5?'':': de '+money(p0)+' a '+money(p1))+', si el Brent y el dólar se mantienen'],
     ['Ajuste del Estado (MEPCO)', Math.abs(aj)<0.5?'Sin ajuste':(aj<0?'−':'+')+money(Math.abs(aj)), '', aj<-0.5?'por litro de impuesto que hoy no se cobra':aj>0.5?'por litro de impuesto extra para frenar una baja':'esta semana el impuesto no se ajusta'],
     ['Petróleo Brent', 'US$'+nf2.format(m.brent), '', 'dólar $'+nf0.format(m.fx)+', cierre del '+(m.fecha?ddmmyy(m.fecha):'—')]
   ].map(([k,v,c,s],i)=>`<div class="rise" style="--d:${.5+i*.12}s"><span class="k">${k}</span><span class="v ${c}">${v}</span><span class="s">${s}</span></div>`).join('');
@@ -666,28 +673,34 @@ function render(){
   countTo($('#p-now'), now.total);
   $('#p-unit').textContent='por litro, promedio estimado en la Región Metropolitana';
   $('#h-q').textContent=`¿Cuánto cuesta hoy un litro de ${fl}?`;
-  const taxes = now.impuestos + now.ajuste;
-  const adjTxt = Math.abs(now.ajuste)<0.5 ? '' :
-    now.ajuste<0 ? ` Esta semana el Estado además cobra <b>${money(-now.ajuste)}</b> menos de impuesto para frenar las alzas; sin esa rebaja el litro costaría ${money(now.total-now.ajuste)}.`
-                 : ` Esta semana el Estado cobra <b>${money(now.ajuste)}</b> extra de impuesto para frenar una baja.`;
-  $('#s1-text').innerHTML = `De cada litro, <b>${money(now.petroleo+now.refinar)}</b> es lo que cuesta el combustible puesto en Chile, <b>${money(now.estacion)}</b> se lo llevan la distribución y la estación, y <b>${money(now.impuestos)}</b> son impuestos.`+adjTxt;
-  $('#barrel1').setAttribute('aria-label',`Barril con la composición del precio de ${fname}: petróleo ${money(now.petroleo)}, refinar y traer ${money(now.refinar)}, estación ${money(now.estacion)}, impuestos ${money(now.impuestos)}, ajuste del Estado ${money(now.ajuste)}.`);
-  $('#cap1').innerHTML=`<b>Gráfico 1.</b> Composición del precio por litro, ${fl}, vigente desde el ${ddmmyy(D.vigencia)}. Cada franja del barril es una parte del precio, de abajo hacia arriba en el orden en que se suma. La franja rayada es impuesto que el Estado deja de cobrar esta semana. Fuente: CNE, SII, ENAP; margen de estación estimado.`;
+  // impuestos que realmente se pagan: IVA + impuesto específico neto (base + ajuste del MEPCO)
+  const ien = now.ieb + now.ajuste, tx = now.iva + ien, txp = nf0.format(tx/now.total*100);
+  const aj = now.ajuste;
+  let taxTxt;
+  if(ien < 0) taxTxt = ` El resto son impuestos: <b>${money(now.iva)}</b> de IVA, pero el impuesto específico es negativo (<b>${money(ien)}</b>): esta semana el Estado rebaja ${money(-aj)} por litro con el MEPCO, más que el impuesto fijo de ${money(now.ieb)}. En total, los impuestos netos son <b>${money(tx)}</b> (${txp}% del precio); sin esa rebaja el litro costaría ${money(now.total-aj)}.`;
+  else taxTxt = ` El resto son impuestos: <b>${money(now.iva)}</b> de IVA y <b>${money(ien)}</b> de impuesto específico, en total <b>${money(tx)}</b> (${txp}% del precio).`
+    + (aj < -0.5 ? ` Ese impuesto específico ya descuenta una rebaja de ${money(-aj)} que el Estado aplica esta semana con el MEPCO; sin ella, el litro costaría ${money(now.total-aj)}.`
+      : aj > 0.5 ? ` Ese impuesto específico incluye un recargo de ${money(aj)} que el Estado cobra esta semana con el MEPCO.` : '');
+  $('#s1-text').innerHTML = `De cada litro, <b>${money(now.petroleo+now.refinar)}</b> es lo que cuesta el combustible puesto en Chile y <b>${money(now.estacion)}</b> se lo llevan la distribución y la estación.`+taxTxt;
+  $('#barrel1').setAttribute('aria-label',`Barril con la composición del precio de ${fname}: petróleo ${money(now.petroleo)}, refinar y traer ${money(now.refinar)}, estación ${money(now.estacion)}, IVA ${money(now.iva)}, impuesto específico neto ${money(ien)}, del cual ${money(aj)} es el ajuste del MEPCO.`);
+  $('#cap1').innerHTML=`<b>Gráfico 1.</b> Composición del precio por litro, ${fl}, vigente desde el ${ddmmyy(D.vigencia)}. Cada franja es una parte del precio, de abajo hacia arriba en el orden en que se suma. La franja rayada es el ajuste del MEPCO sobre el impuesto específico; el impuesto específico se rotula neto de ese ajuste y los porcentajes, sobre el precio final, suman 100%. Fuente: CNE, SII, ENAP; margen de estación estimado.`;
 
   // ---- 2
   const sN = fuel==='diesel';
   const parD = fuel==='g95' ? (D.combustibles.g93.paridad+D.combustibles.g97.paridad)/2 : c.paridad;
   const iebTxt = sN ? '1,5 UTM por metro cúbico' : '6 UTM por metro cúbico';
+  const spread = fuel==='g95' ? (CAL.S.g93+CAL.S.g97)/2 : CAL.S[fuel];
   const steps = [
     ['Petróleo crudo', now.petroleo, `Chile toma como referencia el Brent, el petróleo del Mar del Norte. Un barril tiene 159 litros. El precio vigente usa el promedio de las cuatro semanas anteriores, cuando el Brent promedió US$${nf1.format(CAL.bWin)}; hoy está en US$${nf1.format(D.mercado.brent)}.`, 'Por eso los precios en Chile reaccionan con unas semanas de atraso.'],
-    ['Refinarlo y traerlo a Chile', now.refinar, `Chile no compra crudo para fijar el precio: compra ${sN?'diésel ya refinado':'bencina ya refinada'} en la costa del Golfo de EE.UU., y paga el barco, el seguro y el ajuste de calidad. La CNE suma todo eso en el <b>costo de importar</b> (precio de paridad): ${money(parD)} por litro esta semana.`, sN?'Hoy el diésel refinado está muy caro respecto del crudo. Esa es la razón principal de su alza.':'Hoy la bencina refinada está barata respecto del crudo, lo que ayuda a contener su precio.'],
+    ['Refinarlo y traerlo a Chile', now.refinar, `Chile no compra crudo para fijar el precio: compra ${sN?'diésel ya refinado':'bencina ya refinada'} en la costa del Golfo de EE.UU., y paga el barco, el seguro y el ajuste de calidad. La CNE suma todo eso en el <b>costo de importar</b> (precio de paridad): ${money(parD)} por litro esta semana.`, `Hoy el ${sN?'diésel':'combustible'} puesto en Chile cuesta unos US$${nf0.format(spread)} por barril más que el crudo${sN?`, más del doble que la bencina 93 (US$${nf0.format(CAL.S.g93)}). Esa diferencia es la razón principal de que el diésel esté tan caro.`:` (en el diésel, US$${nf0.format(CAL.S.diesel)}).`}`],
     ['Distribución y estación', now.estacion, `ENAP vende al por mayor a las distribuidoras, y la estación agrega su margen por transporte, operación y ganancia. En Santiago ese margen ronda los ${money((fuel==='g95'?D.combustibles.g95.margen:c.margen)||0)} por litro con IVA.`, 'Es la única parte que cambia entre una estación y otra.'],
-    ['Impuestos', now.impuestos, `Dos impuestos: el <b>impuesto específico</b>, fijo en ${iebTxt} (${money(now.ieb)} por litro), y el <b>IVA</b> de 19%, que se cobra sobre todo lo anterior menos el impuesto específico (${money(now.iva)}).`, 'La UTM se reajusta cada mes con la inflación, así que el impuesto específico sube un poco cada mes.'],
-    ['Ajuste del Estado (MEPCO)', now.ajuste, `Para que el precio no salte cada semana, el Estado sube o baja el impuesto específico. Así, el precio mayorista de ENAP solo cambia cada tres semanas y como máximo en torno a 2,4%. Esta semana el ajuste es de ${now.ajuste<0?'−':'+'}${money(Math.abs(now.ajuste))} por litro.`, 'Cuando el ajuste es negativo, el Estado deja de recaudar; cuando es positivo, recupera.']
+    ['IVA (19%)', now.iva, `El IVA de 19% se cobra sobre el costo del combustible y el margen de la estación: ${money(now.iva)} por litro. No se cobra sobre el impuesto específico (Ley 18.502, art. 6).`, 'Por eso, cuando sube el petróleo, el IVA también sube.'],
+    ['Impuesto específico', now.ieb, `Impuesto fijo por litro, propio de los combustibles: ${iebTxt}, que este mes equivale a ${money(now.ieb)} por litro (Ley 18.502).`, 'La UTM se reajusta cada mes con la inflación, así que este impuesto sube un poco cada mes.'],
+    ['Ajuste del Estado (MEPCO)', now.ajuste, `Para que el precio no salte cada semana, el Estado sube o baja el impuesto específico (Ley 20.765). Así, el precio mayorista de ENAP solo cambia cada tres semanas y como máximo en torno a 2,4%. Esta semana el ajuste es de ${now.ajuste<0?'−':'+'}${money(Math.abs(now.ajuste))} por litro, así que el impuesto específico que se paga en la práctica es ${money(ien)}.${ien<0?' Como la rebaja es mayor que el impuesto fijo, el impuesto específico queda negativo: el Estado pone plata en cada litro.':''}`, 'Cuando el ajuste es negativo, el Estado deja de recaudar; cuando es positivo, recupera.']
   ];
-  const sw=['--s-oil','--s-ref','--s-sta','--s-tax'];
+  const sw=SEG.map(x=>x[2]);
   renderFlow(now, steps);
-  $('#chain').innerHTML = steps.map(([t,v,txt,note],i)=>`<li><span class="k">${i+1}</span><h3><span class="sw ${i===4?'adj':''}" ${i<4?`style="background:var(${sw[i]})"`:''}></span>${t}</h3><span class="amt">${i===4?(v<0?'−':v>0?'+':''):''}${money(Math.abs(v))}</span><p>${txt}<span class="muted">${note}</span></p></li>`).join('');
+  $('#chain').innerHTML = steps.map(([t,v,txt,note],i)=>`<li><span class="k">${i+1}</span><h3><span class="sw ${i===NSEG?'adj':''}" ${i<NSEG?`style="background:var(${sw[i]})"`:''}></span>${t}</h3><span class="amt">${i===NSEG?(v<0?'−':v>0?'+':''):''}${money(Math.abs(v))}</span><p>${txt}<span class="muted">${note}</span></p></li>`).join('');
 
   // ---- 3
   $('#o-brent').textContent='US$ '+nf1.format(P.brent);
@@ -701,7 +714,7 @@ function render(){
     <div><span class="k">Diferencia</span><span class="v ${cls(gap)}">${Math.abs(gap)<0.5?'0':delta(gap)}</span></div>`;
   LAST={now,full};
   drawBarrels();
-  $('#leg2').innerHTML=SEG.map(([,n,c])=>`<span><span class="sw" style="background:var(${c})"></span>${n}</span>`).join('')+`<span><span class="sw adj"></span>Ajuste del Estado</span>`;
+  $('#leg2').innerHTML=SEG.map(([,n,c])=>`<span><span class="sw" style="background:var(${c})"></span>${n}</span>`).join('')+`<span><span class="sw adj"></span>Ajuste del MEPCO</span>`;
   $('#cap2').innerHTML=`<b>Gráfico 2.</b> Precio de ${fl} hoy y con un Brent de US$${nf1.format(P.brent)} y un dólar de $${nf0.format(P.fx)} traspasados completos, sin ajuste del Estado. Costo de importar con tus valores: ${money(pi)} por litro.`;
   const nx = SIM.pump(fuel,3,false)-now.total;
   $('#s3-text').innerHTML = Math.abs(gap)<3
@@ -720,23 +733,24 @@ const ICONS = [
   '<rect x="8" y="4" width="16" height="24" rx="3"/><path d="M8 11h16M8 21h16"/>',
   '<path d="M4 19h24l-3.5 6h-17z"/><path d="M10 19v-6h9v6M13 13V8h3"/><path d="M3 29c2.5 0 2.5-1.5 5-1.5s2.5 1.5 5 1.5 2.5-1.5 5-1.5 2.5 1.5 5 1.5 2.5-1.5 5-1.5"/>',
   '<rect x="5" y="5" width="13" height="23" rx="1.5"/><path d="M5 12h13M8.5 17h6"/><path d="M18 9l5 4v10.5a2 2 0 0 0 4 0V12l-3-3"/>',
+  '<circle cx="10" cy="10" r="3.5"/><circle cx="22" cy="22" r="3.5"/><path d="M24 7L8 25"/>',
   '<path d="M8 4h16v24l-2.7-2-2.6 2-2.7-2-2.7 2-2.6-2L8 28z"/><path d="M12 10h8M12 15h8M12 20h5"/>',
   '<path d="M16 5v21M11 27h10M6 9h20"/><path d="M6 9l-3.5 8a3.5 3.5 0 0 0 7 0zM26 9l-3.5 8a3.5 3.5 0 0 0 7 0z"/>'
 ];
-const FLOWKEYS = ['petroleo','refinar','estacion','impuestos','ajuste'];
+const FLOWKEYS = [...SEG.map(x=>x[0]),'ajuste'];
 let flowStep = 0;
 function renderFlow(now, steps){
   const cum=[]; let acc=0; FLOWKEYS.forEach(k=>{acc+=now[k]; cum.push(acc);});
-  const cols=['--s-oil','--s-ref','--s-sta','--s-tax'];
-  $('#flow').innerHTML = steps.map(([t,v],i)=>`<button type="button" class="node ${i===flowStep?'on':''} ${i>flowStep?'off':''}" data-step="${i}" aria-pressed="${i===flowStep}" style="--c:var(${i<4?cols[i]:'--ink'})">
+  const cols=SEG.map(x=>x[2]);
+  $('#flow').innerHTML = steps.map(([t,v],i)=>`<button type="button" class="node ${i===flowStep?'on':''} ${i>flowStep?'off':''}" data-step="${i}" aria-pressed="${i===flowStep}" style="--c:var(${i<NSEG?cols[i]:'--ink'})">
       <svg viewBox="0 0 32 32" aria-hidden="true">${ICONS[i]}</svg>
-      <span class="nm"><span class="sw ${i===4?'adj':''}" ${i<4?`style="background:var(${cols[i]})"`:''}></span> ${t}</span>
-      <span class="av">${i===4?(v<0?'−':v>0?'+':''):(i?'+':'')}${money(Math.abs(v))}</span>
+      <span class="nm"><span class="sw ${i===NSEG?'adj':''}" ${i<NSEG?`style="background:var(${cols[i]})"`:''}></span> ${t}</span>
+      <span class="av">${i===NSEG?(v<0?'−':v>0?'+':''):(i?'+':'')}${money(Math.abs(v))}</span>
       <span class="ac">va en ${money(cum[i])}</span>
-      <span class="hint">Paso ${i+1} de 5</span>
+      <span class="hint">Paso ${i+1} de ${steps.length}</span>
     </button>`).join('');
   document.querySelectorAll('#flow .node').forEach(b=>b.addEventListener('click',()=>{ flowStep=+b.dataset.step; renderFlow(now,steps); highlightChain();
-    barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<4?'Va en':'', animOnly:flowStep}); }));
+    barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<NSEG?'Va en':'', animOnly:flowStep}); }));
   $('#cap-flow').innerHTML = `<b>Diagrama 1.</b> Cómo se va sumando el precio de un litro de ${NAME[fuel].toLowerCase()}. Etapa seleccionada: <b>${steps[flowStep][0].toLowerCase()}</b>.`;
 }
 function highlightChain(){ document.querySelectorAll('#chain li').forEach((li,i)=>li.classList.toggle('hl',i===flowStep)); }
