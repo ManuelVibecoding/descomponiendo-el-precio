@@ -810,7 +810,7 @@ function renderFlow(now, steps){
     </button>`).join('');
   document.querySelectorAll('#flow .node').forEach(b=>b.addEventListener('click',()=>{ flowStep=+b.dataset.step; renderFlow(now,steps); highlightChain();
     barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<NSEG?'Va en':'', animOnly:flowStep}); }));
-  $('#cap-flow').innerHTML = `<b>Diagrama 1.</b> Cómo se va sumando el precio de un litro de ${NAME[fuel].toLowerCase()}. Etapa seleccionada: <b>${steps[flowStep][0].toLowerCase()}</b>.`;
+  $('#cap-flow').innerHTML = `<b>Diagrama 1.</b> Cómo se va sumando el precio de un litro de ${NAME[fuel].toLowerCase()}. Etapa seleccionada: <b>${steps[flowStep][0]}</b>.`;
 }
 function highlightChain(){ document.querySelectorAll('#chain li').forEach((li,i)=>li.classList.toggle('hl',i===flowStep)); }
 
