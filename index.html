@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Cómo se forma el precio de la bencina y el diésel en Chile, del barril de petróleo a la estación, y qué viene en las próximas fijaciones del MEPCO.">
+<meta property="og:title" content="Barril a Bomba">
+<meta property="og:description" content="Cómo se forma el precio de la bencina en Chile, paso a paso, con simulador y proyección semanal.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://manuelvibecoding.github.io/barril-a-bomba/">
+<meta property="og:image" content="https://manuelvibecoding.github.io/barril-a-bomba/og.png">
+<meta property="og:locale" content="es_CL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1C355E">
+<title>Barril a Bomba</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
+<style>
+/* Layout: nota técnica de una columna (texto 680px, figuras 960px), 4 pasos numerados + anexo plegable.
+   Paleta: blanco, tinta azul-negra, azul marino para el costo, rojo óxido solo para impuestos. */
+:root{
+  --bg:#FFFFFF; --ink:#17202D; --muted:#5D6878; --rule:#DCE1E7; --soft:#F3F5F8;
+  --navy:#1C355E; --accent:#8C2B25;
+  --s-oil:#1C355E; --s-ref:#5A7DB3; --s-sta:#AAB7C9; --s-tax:#8C2B25; --s-adj:#17202D;
+  --up:#8C2B25; --down:#1C355E;
+  --steel:#C7CFD9; --steel-dk:#8E99A8; --steel-lt:#E4E8ED; --shadow:rgba(20,30,45,.18);
+  --f-head:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F141B; --ink:#E5E9EF; --muted:#9BA6B5; --rule:#283241; --soft:#171E28;
+  --navy:#9DB8E6; --accent:#E07F72;
+  --s-oil:#A9C2EC; --s-ref:#5F86C6; --s-sta:#3F4E66; --s-tax:#D06C5F; --s-adj:#E5E9EF;
+  --up:#E07F72; --down:#9DB8E6; --steel:#3B4553; --steel-dk:#252D38; --steel-lt:#55606F; --shadow:rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F141B; --ink:#E5E9EF; --muted:#9BA6B5; --rule:#283241; --soft:#171E28;
+  --navy:#9DB8E6; --accent:#E07F72;
+  --s-oil:#A9C2EC; --s-ref:#5F86C6; --s-sta:#3F4E66; --s-tax:#D06C5F; --s-adj:#E5E9EF;
+  --up:#E07F72; --down:#9DB8E6; --steel:#3B4553; --steel-dk:#252D38; --steel-lt:#55606F; --shadow:rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.page{width:100%;max-width:960px;margin:0 auto;display:flex;flex-direction:column;min-width:0}
+.text{max-width:680px}
+h1,h2,h3{font-family:var(--f-head);font-weight:600;margin:0;line-height:1.2;text-wrap:balance}
+h1{font-size:clamp(2rem,4.5vw,2.7rem);letter-spacing:-.01em}
+h2{font-size:1.55rem}
+h3{font-size:1.15rem}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.num{font-variant-numeric:tabular-nums}
+b,strong{font-weight:600}
+
+/* cabecera */
+.masthead{border-top:3px solid var(--navy);padding-top:22px;margin-top:20px;display:flex;flex-direction:column;gap:10px}
+.meta{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:.86rem;color:var(--muted)}
+.meta span+span::before{content:"";}
+.fuelbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding-block:10px;margin-top:22px}
+.fuelbar .lab{font-size:.86rem;color:var(--muted)}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:.95rem;border:1px solid transparent;border-radius:4px;background:none;color:var(--ink);padding:5px 12px;cursor:pointer}
+.tabs button:hover{border-color:var(--rule)}
+.tabs button[aria-pressed="true"]{background:var(--navy);color:var(--bg);font-weight:600}
+:focus-visible{outline:2px solid var(--s-ref);outline-offset:2px}
+
+/* secciones */
+section.step{border-top:1px solid var(--rule);padding-block:38px 6px;display:flex;flex-direction:column;gap:18px;min-width:0}
+section.step:first-of-type{border-top:0}
+.stephead{display:flex;gap:14px;align-items:baseline}
+.stephead .n{font-family:var(--f-head);font-weight:700;font-size:1.55rem;color:var(--muted);min-width:1.2em}
+.lead{font-size:1.08rem}
+.price{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.price .big{font-family:var(--f-head);font-weight:700;font-size:clamp(2.6rem,7vw,3.6rem);line-height:1;font-variant-numeric:tabular-nums;color:var(--navy)}
+.price .unit{color:var(--muted)}
+
+/* figuras */
+figure{margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+figcaption{font-size:.84rem;color:var(--muted);border-top:1px solid var(--rule);padding-top:6px}
+figcaption b{color:var(--ink)}
+.bar{position:relative;height:38px;background:var(--soft)}
+.bar>div{position:absolute;top:0;bottom:0}
+.bar .adj{background-image:repeating-linear-gradient(135deg,var(--s-adj) 0 1.5px,transparent 1.5px 6px);border-left:2px solid var(--s-adj)}
+.barline{display:grid;grid-template-columns:132px minmax(0,1fr) 88px;gap:12px;align-items:center}
+.barline .l{font-size:.86rem;color:var(--muted);line-height:1.25}
+.barline .t{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;font-size:1.08rem}
+.sw{width:12px;height:12px;display:inline-block;flex:none}
+.sw.adj{background-image:repeating-linear-gradient(135deg,var(--s-adj) 0 1.5px,transparent 1.5px 5px);outline:1px solid var(--s-adj);outline-offset:-1px}
+
+table{border-collapse:collapse;width:100%;font-size:.93rem;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--rule);vertical-align:top}
+th:first-child,td:first-child{text-align:left;padding-left:0}
+th:last-child,td:last-child{padding-right:0}
+thead th{font-weight:600;font-size:.8rem;color:var(--muted);border-bottom:1px solid var(--ink)}
+tfoot td{font-weight:600;border-bottom:0;border-top:1px solid var(--ink)}
+td .d{display:block;font-size:.82rem;color:var(--muted);font-weight:400}
+.scroll{overflow-x:auto;min-width:0}
+.scroll table{min-width:520px}
+.up{color:var(--up)} .down{color:var(--down)}
+
+/* pasos de la cadena */
+.chain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.chain li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:4px 14px;padding-block:14px;border-bottom:1px solid var(--rule)}
+.chain li:last-child{border-bottom:0}
+.chain .k{font-family:var(--f-head);font-weight:700;color:var(--muted)}
+.chain h3{display:flex;align-items:center;gap:8px}
+.chain .amt{font-weight:600;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.chain p{grid-column:2 / 4;max-width:640px;color:var(--ink)}
+.chain p .muted{display:block;margin-top:4px;font-size:.9rem}
+
+/* barril */
+.barrel{width:100%;min-width:0}
+.barrel svg{display:block;width:100%;height:auto;overflow:visible}
+.barrel text{font-family:var(--f-body);font-variant-numeric:tabular-nums}
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:640px}
+.pair .ph{font-size:.86rem;color:var(--muted);text-align:center;min-height:2.6em}
+
+/* diagrama de etapas */
+.flowwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px;align-items:center}
+.flow{display:flex;flex-direction:column;border:1px solid var(--rule)}
+.node{font:inherit;color:var(--ink);background:var(--bg);border:0;border-bottom:1px solid var(--rule);text-align:left;cursor:pointer;position:relative;min-width:0;
+  display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:0 12px;padding:10px 14px}
+.node:last-child{border-bottom:0}
+.node svg{width:32px;height:32px;stroke:var(--muted);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;grid-row:1 / 3}
+.node .nm{font-weight:600;font-size:.95rem;line-height:1.25}
+.node .av{font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;text-align:right;grid-column:3;grid-row:1}
+.node .ac{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;grid-column:3;grid-row:2}
+.node .hint{font-size:.8rem;color:var(--muted);grid-column:2;grid-row:2}
+.node.on{background:var(--soft);box-shadow:inset 3px 0 0 var(--navy)}
+.node.on svg{stroke:var(--navy)}
+.node.off{opacity:.5}
+.chain li.hl h3{color:var(--navy)}
+.readout{font-size:.95rem;font-variant-numeric:tabular-nums;min-height:1.6em}
+@media (max-width:720px){
+  .flowwrap{grid-template-columns:1fr}
+  .flowwrap .barrel{order:-1}
+  .pair{gap:6px}
+}
+
+/* controles */
+.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 32px}
+.ctrl{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ctrl label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-weight:600}
+.ctrl output{font-variant-numeric:tabular-nums;font-weight:600;color:var(--navy);font-size:1.1rem}
+.ctrl .h{font-size:.84rem;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--navy)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.presets .lab{font-size:.86rem;color:var(--muted);margin-right:4px}
+.link{font:inherit;font-size:.9rem;background:none;border:1px solid var(--rule);border-radius:4px;padding:4px 10px;color:var(--ink);cursor:pointer}
+.link:hover{border-color:var(--navy)}
+details{border-top:1px solid var(--rule)}
+details>summary{cursor:pointer;padding-block:12px;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:10px}
+details>summary::-webkit-details-marker{display:none}
+details>summary::after{content:"+";font-weight:400;color:var(--muted)}
+details[open]>summary::after{content:"−"}
+details>.inner{padding-bottom:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.result{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--ink);border-bottom:1px solid var(--rule)}
+.result>div{padding:12px 14px 12px 0;display:flex;flex-direction:column;gap:2px;min-width:0}
+.result>div+div{padding-left:14px;border-left:1px solid var(--rule)}
+.result .k{font-size:.84rem;color:var(--muted)}
+.result .v{font-family:var(--f-head);font-weight:700;font-size:1.8rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.note{border-left:3px solid var(--accent);padding:4px 0 4px 14px;max-width:680px}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{font-family:var(--f-body);font-size:12px;fill:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.86rem}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2.5px solid}
+dl.gloss{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:8px 18px;margin:0}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0;color:var(--ink)}
+.anexo h2{margin-bottom:4px}
+.loading{padding:60px 0;color:var(--muted)}
+ul.plain{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:680px}
+
+@media (max-width:720px){
+  .controls,.result{grid-template-columns:1fr}
+  .result>div+div{padding-left:0;border-left:0;border-top:1px solid var(--rule)}
+  .barline{grid-template-columns:1fr;gap:4px}.barline .t{text-align:left}
+  dl.gloss{grid-template-columns:1fr;gap:2px}
+  dl.gloss dd{margin-bottom:10px}
+  body{font-size:16px}
+}
+
+html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <h1>Barril a Bomba</h1>
+    <p class="text lead muted">Cómo se forma el precio de la bencina y el diésel en Chile, desde el barril de petróleo hasta lo que pagas en la estación, y qué viene en las próximas semanas.</p>
+    <div class="meta" id="meta"><span>Cargando datos…</span></div>
+  </header>
+  <div id="app"><p class="loading" id="loading">Cargando los datos oficiales de esta semana…</p></div>
+</div>
+
+<script>
+(function(){
+const L = 158.987; // litros por barril
+const FUELS = ['g93','g95','g97','diesel'];
+const NAME = {g93:'Bencina 93',g95:'Bencina 95',g97:'Bencina 97',diesel:'Diésel'};
+const SHORT = {g93:'93',g95:'95',g97:'97',diesel:'Diésel'};
+const nf0 = new Intl.NumberFormat('es-CL',{maximumFractionDigits:0});
+const nf1 = new Intl.NumberFormat('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1});
+const nf2 = new Intl.NumberFormat('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2});
+const $ = s => document.querySelector(s);
+const money = v => (v<0?'−':'')+'$'+nf0.format(Math.abs(v));
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// variación en palabras, sin signos ambiguos
+const move = (v,unit='') => Math.abs(v)<0.5 ? 'sin cambio' : (v>0?'sube ':'baja ')+money(Math.abs(v))+unit;
+const delta = v => Math.abs(v)<0.5 ? '—' : (v>0?'+':'−')+'$'+nf0.format(Math.abs(v));
+const cls = v => v>0.5?'up':v<-0.5?'down':'';
+
+const toD = s => new Date(s+'T00:00:00Z');
+const iso = d => d.toISOString().slice(0,10);
+const addDays = (s,n) => { const d=toD(s); d.setUTCDate(d.getUTCDate()+n); return iso(d); };
+const ddmm = s => s.slice(8,10)+'-'+s.slice(5,7);
+const ddmmyy = s => s.slice(8,10)+'-'+s.slice(5,7)+'-'+s.slice(0,4);
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const longDate = s => { const d=toD(s); return DIAS[d.getUTCDay()]+' '+d.getUTCDate()+' de '+MESES[d.getUTCMonth()]; };
+
+let D=null, H=null, CAL=null;
+const P = {};
+let fuel = 'g93';
+try{ const f=localStorage.getItem('bab-fuel'); if(FUELS.includes(f)) fuel=f; }catch(e){}
+
+// ================= modelo =================
+function prepare(){
+  const known = {};
+  (D.semanas||[]).forEach(w=>known[w.lunes]={brent:+w.brent,fx:+w.fx});
+  const win = [-31,-24,-17,-10].map(n=>addDays(D.vigencia,n));
+  const S = {}; let bSum=0,bN=0;
+  win.forEach(m=>{ if(known[m]){bSum+=known[m].brent;bN++;} });
+  ['g93','g97','diesel'].forEach(f=>{
+    const c = D.combustibles[f]; let sBF=0,sF=0,ok=true;
+    win.forEach(m=>{const w=known[m]; if(!w){ok=false;return;} sBF+=w.brent*w.fx; sF+=w.fx;});
+    S[f] = ok ? (4*c.paridad*L - sBF)/sF : c.paridad*L/D.mercado.fx - D.mercado.brent;
+  });
+  CAL = {known,S,bWin: bN? bSum/bN : D.mercado.brent};
+}
+function resetParams(){ P.brent=+D.mercado.brent; P.fx=+D.mercado.fx; P.utm=+D.utm; P.dSg=0; P.dSd=0; P.dM=0; }
+const dS = (f,p=P) => f==='diesel'?p.dSd:p.dSg;
+const margin = (f,p=P) => (D.combustibles[f].margen||0) + p.dM;
+const cvNow = f => D.combustibles[f].cvUTM * D.utm/1000;
+
+function simulate(p=P){
+  const K=20, out={T:[],f:{}};
+  const val=(f,m)=>{ const w=CAL.known[m]; return w ? (w.brent+CAL.S[f])*w.fx/L : (p.brent+CAL.S[f]+dS(f,p))*p.fx/L; };
+  for(let k=0;k<=K;k++) out.T.push(addDays(D.vigencia,7*k));
+  ['g93','g97','diesel'].forEach(f=>{
+    const c=D.combustibles[f], int0=c.bandaSup/1.05;
+    const r={par:[],sup:[],inf:[],base:[],M:[],MF:[],full:[]};
+    out.T.forEach((T,k)=>{
+      const par = k===0 ? c.paridad : [-31,-24,-17,-10].map(n=>val(f,addDays(T,n))).reduce((a,b)=>a+b,0)/4;
+      const intk = int0 + (c.deriva||0)*Math.min(k,c.derivaSemanas??10) + (c.futPeso||0)*(p.brent-D.mercado.brent)*p.fx/L;
+      const IEB = c.iebUTM*(k===0?D.utm:p.utm)/1000;
+      r.par.push(par); r.sup.push(intk*1.05); r.inf.push(intk*0.95);
+      r.base.push((par+c.premio)*1.19+IEB);
+      r.full.push((par+c.premio)*1.19+IEB+(k===0?(c.margen||0):margin(f,p)));
+    });
+    out.f[f]=r;
+  });
+  const baseAt=(f,k)=>{ if(k>=0) return out.f[f].base[k]; const h=(D.combustibles[f].base||[]).map(x=>+x.v); return h[h.length-1+k] ?? out.f[f].base[0]; };
+  const fr=D.congelamiento||{}, frFrom=fr.desde||'9999-12-31', frTo=fr.hasta||'0000-01-01';
+  ['g93','g97','diesel'].forEach(f=>{
+    const r=out.f[f], c=D.combustibles[f], ref=f==='diesel'?'diesel':'g93';
+    const step=(k,Mprev)=>{
+      const u=0.024*(baseAt(ref,k-1)+baseAt(ref,k-2))/2, d=r.base[k]-Mprev;
+      let cv=Mprev+Math.max(-u,Math.min(u,d))-r.base[k];
+      if(r.par[k]+cv>r.sup[k]) cv=r.sup[k]-r.par[k]; else if(r.par[k]+cv<r.inf[k]) cv=r.inf[k]-r.par[k];
+      return r.base[k]+cv;
+    };
+    r.M[0]=c.mayorista; r.MF[0]=c.mayorista; let applied=false;
+    for(let k=1;k<r.base.length;k++){
+      const T=out.T[k], ch=k%3===0;
+      r.M[k]= ch ? step(k,r.M[k-1]) : r.M[k-1];
+      let MF=r.MF[k-1];
+      if(T>=frFrom && T<=frTo && !applied){ MF-=((fr.rebaja||{})[f]||0); applied=true; }
+      if(ch){ const s=step(k,MF); MF = T<=frTo ? Math.min(s,MF) : s; }
+      r.MF[k]=MF;
+    }
+  });
+  const a=out.f.g93,b=out.f.g97,avg=(x,y)=>x.map((v,i)=>(v+y[i])/2);
+  const m93=k=>k===0?(D.combustibles.g93.margen||0):margin('g93',p), m97=k=>k===0?(D.combustibles.g97.margen||0):margin('g97',p), m95=k=>k===0?(D.combustibles.g95.margen||0):margin('g95',p);
+  out.f.g95={par:avg(a.par,b.par),sup:avg(a.sup,b.sup),inf:avg(a.inf,b.inf),base:avg(a.base,b.base),M:avg(a.M,b.M),MF:avg(a.MF,b.MF),
+    full:a.full.map((v,i)=>(v-m93(i)+b.full[i]-m97(i))/2+m95(i))};
+  out.pump=(f,k,freeze)=>(freeze?out.f[f].MF[k]:out.f[f].M[k]) + (k===0?(D.combustibles[f].margen||0):margin(f,p));
+  return out;
+}
+
+// Precio desglosado en 5 partes. mode 'hoy' = vigente; 'pleno' = traspaso completo de los supuestos del simulador
+function parts(f, mode, p=P){
+  if(f==='g95'){
+    const a=parts('g93',mode,p), b=parts('g97',mode,p), C=D.combustibles;
+    const mA = mode==='hoy'?(C.g93.margen||0):margin('g93',p), mB = mode==='hoy'?(C.g97.margen||0):margin('g97',p), m = mode==='hoy'?(C.g95.margen||0):margin('g95',p);
+    const o={}; Object.keys(a).forEach(k=>o[k]=(a[k]+b[k])/2);
+    const dm=(m-(mA+mB)/2); o.estacion+=dm/1.19; o.impuestos+=0.19*dm/1.19; o.iva+=0.19*dm/1.19;
+    o.total=o.petroleo+o.refinar+o.estacion+o.impuestos+o.ajuste; return o;
+  }
+  const c=D.combustibles[f];
+  let petroleo, refinar, m, ajuste, ieb;
+  if(mode==='hoy'){
+    petroleo = c.paridad*CAL.bWin/(CAL.bWin+CAL.S[f]);
+    refinar = c.paridad-petroleo+c.premio; m=(c.margen||0)/1.19; ajuste=cvNow(f); ieb=c.iebUTM*D.utm/1000;
+  } else {
+    petroleo = p.brent*p.fx/L; refinar=(CAL.S[f]+dS(f,p))*p.fx/L + c.premio; m=margin(f,p)/1.19; ajuste=0; ieb=c.iebUTM*p.utm/1000;
+  }
+  const iva=0.19*(petroleo+refinar+m);
+  return {petroleo, refinar, estacion:m, impuestos:ieb+iva, ieb, iva, ajuste, total:petroleo+refinar+m+ieb+iva+ajuste};
+}
+const parInst = (f,p=P) => f==='g95' ? (parInst('g93',p)+parInst('g97',p))/2 : (p.brent+CAL.S[f]+dS(f,p))*p.fx/L;
+
+// ================= estructura =================
+const SEG = [['petroleo','Petróleo crudo','--s-oil'],['refinar','Refinarlo y traerlo a Chile','--s-ref'],['estacion','Distribución y estación','--s-sta'],['impuestos','Impuestos','--s-tax']];
+
+function build(){
+  $('#app').innerHTML = `
+  <nav class="fuelbar" aria-label="Combustible">
+    <span class="lab">Combustible</span>
+    <div class="tabs" role="group">${FUELS.map(f=>`<button type="button" data-fuel="${f}" aria-pressed="${f===fuel}">${NAME[f]}</button>`).join('')}</div>
+  </nav>
+
+  <section class="step" id="s1">
+    <div class="stephead"><span class="n">1</span><h2>¿Cuánto cuesta un litro hoy?</h2></div>
+    <div class="price"><span class="big" id="p-now"></span><span class="unit" id="p-unit"></span></div>
+    <p class="text lead" id="s1-text"></p>
+    <figure>
+      <div class="barrel" id="barrel1" role="img"></div>
+      <figcaption id="cap1"></figcaption>
+    </figure>
+  </section>
+
+  <section class="step" id="s2">
+    <div class="stephead"><span class="n">2</span><h2>¿De dónde sale cada parte?</h2></div>
+    <p class="text">El precio se arma en cinco etapas, en este orden. Toca cada etapa para ver cuánto agrega y cuánto va sumando el litro.</p>
+    <figure>
+      <div class="flowwrap">
+        <div class="flow" id="flow" role="group" aria-label="Etapas del precio"></div>
+        <div class="barrel" id="barrel2" role="img" aria-label="Precio acumulado por etapa"></div>
+      </div>
+      <figcaption id="cap-flow"></figcaption>
+    </figure>
+    <ol class="chain" id="chain"></ol>
+    <details>
+      <summary>Glosario de términos</summary>
+      <div class="inner"><dl class="gloss" id="gloss"></dl></div>
+    </details>
+  </section>
+
+  <section class="step" id="s3">
+    <div class="stephead"><span class="n">3</span><h2>¿Qué pasa si cambia el petróleo o el dólar?</h2></div>
+    <p class="text">Mueve los dos indicadores que más pesan. El resultado muestra cuánto debería costar el litro si el nuevo costo se traspasara completo, sin ningún amortiguador.</p>
+    <p class="small muted" id="mkt"></p>
+    <div class="controls">
+      <div class="ctrl"><label for="in-brent">Petróleo Brent <output id="o-brent"></output></label>
+        <input type="range" id="in-brent" min="40" max="160" step="0.5"><span class="h">Dólares por barril de 159 litros</span></div>
+      <div class="ctrl"><label for="in-fx">Dólar <output id="o-fx"></output></label>
+        <input type="range" id="in-fx" min="800" max="1150" step="1"><span class="h">Pesos por dólar (dólar observado)</span></div>
+    </div>
+    <div class="presets"><span class="lab">Probar:</span>
+      <button class="link" type="button" data-sc="hoy">Valores de hoy</button>
+      <button class="link" type="button" data-sc="b70">Brent a US$70</button>
+      <button class="link" type="button" data-sc="b120">Brent a US$120</button>
+      <button class="link" type="button" data-sc="fx1050">Dólar a $1.050</button>
+    </div>
+    <details id="adv">
+      <summary>Más supuestos</summary>
+      <div class="inner"><div class="controls">
+        <div class="ctrl"><label for="in-sg">Refinar y traer la bencina <output id="o-sg"></output></label>
+          <input type="range" id="in-sg" min="0" max="120" step="1"><span class="h">Cuánto más que el crudo cuesta la bencina refinada puesta en Chile, en US$ por barril (bencina 93; la 97 se mueve igual).</span></div>
+        <div class="ctrl"><label for="in-sd">Refinar y traer el diésel <output id="o-sd"></output></label>
+          <input type="range" id="in-sd" min="0" max="160" step="1"><span class="h">Lo mismo para el diésel. Hoy está muy por sobre lo normal (US$25–40).</span></div>
+        <div class="ctrl"><label for="in-m">Margen de la estación <output id="o-m"></output></label>
+          <input type="range" id="in-m" min="20" max="160" step="1"><span class="h">Pesos por litro, con IVA, para el combustible elegido. Varía por comuna.</span></div>
+      </div></div>
+    </details>
+    <div class="result" id="result"></div>
+    <figure>
+      <div class="pair">
+        <div><p class="ph">Hoy</p><div class="barrel" id="barrel3a" role="img"></div></div>
+        <div><p class="ph">Con tus valores, traspaso completo</p><div class="barrel" id="barrel3b" role="img"></div></div>
+      </div>
+      <div class="legend" id="leg2"></div>
+      <figcaption id="cap2"></figcaption>
+    </figure>
+    <p class="note text" id="s3-text"></p>
+  </section>
+
+  <section class="step" id="s4">
+    <div class="stephead"><span class="n">4</span><h2>¿Qué viene en las próximas semanas?</h2></div>
+    <p class="text lead" id="s4-text"></p>
+    <p class="text" id="s4-freeze"></p>
+    <figure>
+      <div class="chart" id="chart"></div>
+      <p class="readout" id="readout"></p>
+      <div class="legend" id="leg3"></div>
+      <figcaption id="cap3"></figcaption>
+    </figure>
+    <table id="t-fix" style="max-width:680px"></table>
+  </section>
+
+  <section class="step anexo" id="s5">
+    <div><h2>Anexo para quien quiera más detalle</h2><p class="muted small">Cifras completas, supuestos del modelo y fuentes.</p></div>
+    <div>
+      <details><summary>Cuánto ajustó el Estado el impuesto cada semana en 2026</summary>
+        <div class="inner"><p class="text small" id="histText"></p><figure><div class="chart" id="hist"></div><figcaption id="cap4"></figcaption></figure></div></details>
+      <details><summary>Cuánto mueve cada indicador</summary>
+        <div class="inner"><p class="text small">Pesos por litro en la estación. "De golpe" es el traspaso completo. "Próxima fijación" es lo que cambiaría el ${'precio'} con las reglas actuales del MEPCO; un guion significa que el ajuste ya está en su tope y el resto queda para fijaciones siguientes.</p><div class="scroll"><table id="t-sens"></table></div></div></details>
+      <details><summary>Desglose técnico completo</summary>
+        <div class="inner"><div class="scroll"><table id="t-tech"></table></div></div></details>
+      <details><summary>Proyección detallada con banda de precios</summary>
+        <div class="inner"><p class="text small">La ley obliga a que el costo de importar más el ajuste del Estado quede dentro de una banda de ±5% alrededor de un precio de referencia que calcula la CNE con dos años de historia del Brent. El techo de esa banda es lo que hoy frena las alzas.</p><div class="scroll"><table id="t-proj"></table></div></div></details>
+      <details><summary>Indicadores de mercado cargados</summary>
+        <div class="inner"><div class="scroll"><table id="t-mkt"></table></div></div></details>
+      <details><summary>Método, supuestos y fuentes</summary>
+        <div class="inner">
+          <ul class="plain">
+            <li><b>Costo de importar (paridad).</b> Lo calcula la CNE cada semana con el precio de la gasolina o diésel refinado en la Costa del Golfo de EE.UU. (Argus), más flete, seguro, mermas y ajuste de calidad, en pesos. Usa el promedio de las últimas 4 semanas. Como los precios Argus no son públicos, el modelo usa el Brent más una diferencia que se recalibra con cada decreto.</li>
+            <li><b>Precio mayorista de ENAP</b> = (paridad + un ajuste pequeño de ENAP) × 1,19 + impuesto específico.</li>
+            <li><b>Impuesto específico</b> = 6 UTM por m³ en bencinas y 1,5 UTM por m³ en diésel, más el componente variable del MEPCO.</li>
+            <li><b>IVA</b> de 19% sobre todo salvo el impuesto específico (Ley 18.502, art. 6).</li>
+            <li><b>Regla del MEPCO</b>: el mayorista cambia cada 3 semanas, como máximo 2,4% del precio sin ajuste, y la paridad más el ajuste debe quedar dentro de la banda.</li>
+            <li><b>Bencina 95</b>: mezcla 50/50 de 93 y 97, que es como la venden las distribuidoras.</li>
+          </ul>
+          <ul class="plain" id="caveats"></ul>
+          <p class="small muted" id="sources"></p>
+        </div></details>
+    </div>
+  </section>`;
+
+  document.querySelectorAll('[data-fuel]').forEach(b=>b.addEventListener('click',()=>{
+    fuel=b.dataset.fuel; try{localStorage.setItem('bab-fuel',fuel);}catch(e){}
+    document.querySelectorAll('[data-fuel]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.fuel===fuel));
+    syncInputs(); render();
+  }));
+  const on=(id,fn)=>$('#'+id).addEventListener('input',e=>{fn(+e.target.value); render();});
+  on('in-brent',v=>P.brent=v); on('in-fx',v=>P.fx=v);
+  on('in-sg',v=>P.dSg=v-CAL.S.g93); on('in-sd',v=>P.dSd=v-CAL.S.diesel);
+  on('in-m',v=>P.dM=v-(D.combustibles[fuel].margen||0));
+  document.querySelectorAll('[data-sc]').forEach(b=>b.addEventListener('click',()=>{
+    resetParams(); const s=b.dataset.sc;
+    if(s==='b70')P.brent=70; if(s==='b120')P.brent=120; if(s==='fx1050')P.fx=1050;
+    syncInputs(); render();
+  }));
+}
+function syncInputs(){
+  $('#in-brent').value=P.brent; $('#in-fx').value=P.fx;
+  $('#in-sg').value=Math.round(CAL.S.g93+P.dSg); $('#in-sd').value=Math.round(CAL.S.diesel+P.dSd);
+  $('#in-m').value=Math.round(margin(fuel));
+}
+
+// ================= render =================
+function barHTML(o, scale){
+  let x=0, h='';
+  SEG.forEach(([k,,c])=>{ const v=o[k]; if(v<=0) return; h+=`<div style="left:${x/scale*100}%;width:${v/scale*100}%;background:var(${c})"></div>`; x+=v; });
+  if(o.ajuste<-0.5){ const w=Math.min(-o.ajuste,x); h+=`<div class="adj" style="left:${(x-w)/scale*100}%;width:${w/scale*100}%"></div>`; }
+  else if(o.ajuste>0.5){ h+=`<div class="adj" style="left:${x/scale*100}%;width:${o.ajuste/scale*100}%"></div>`; }
+  return h;
+}
+const posSum = o => o.petroleo+o.refinar+o.estacion+o.impuestos+Math.max(0,o.ajuste);
+
+// ---------- barril ilustrado (SVG) ----------
+// Franjas pintadas de abajo hacia arriba: petróleo, refinar, estación, impuestos. El ajuste del
+// Estado se dibuja rayado (negativo: parte del impuesto que no se cobra). Lo no usado queda en acero.
+let BID=0;
+function barrelSVG(el, o, opt={}){
+  const id='b'+(++BID);
+  const Wd=Math.max(220, el.clientWidth||600);
+  const labels=opt.labels!==false, upto=opt.upto??4;
+  const H=opt.H||(labels?360:300);
+  const bw=labels ? Math.min(190, Math.max(120, Wd*0.36)) : Math.min(170, Wd*0.62);
+  const bx=labels ? Math.max(18, Math.min(60, Wd*0.06)) : (Wd-bw)/2;
+  const ry=bw*0.11, B=bw*0.07, yT=34+ry, yB=H-26-ry;
+  const max=opt.max||posSum(o);
+  const s=(yB-yT-4)/max;
+  const xo=y=>{const t=(y-yT)/(yB-yT); return 4*B*t*(1-t);};
+  const cx=bx+bw/2;
+  const body=`M${bx},${yT} Q${bx-2*B},${(yT+yB)/2} ${bx},${yB} A${bw/2},${ry} 0 0 0 ${bx+bw},${yB} Q${bx+bw+2*B},${(yT+yB)/2} ${bx+bw},${yT} A${bw/2},${ry} 0 0 0 ${bx},${yT}Z`;
+  const arc=(y,col,wd,op=1)=>`<path d="M${bx-xo(y)},${y} A${bw/2+xo(y)},${ry} 0 0 0 ${bx+bw+xo(y)},${y}" fill="none" stroke="${col}" stroke-width="${wd}" opacity="${op}"/>`;
+  const cols=['--s-oil','--s-ref','--s-sta','--s-tax'], keys=['petroleo','refinar','estacion','impuestos'];
+  const names=['Petróleo crudo','Refinarlo y traerlo','Distribución y estación','Impuestos'];
+  let g=`<defs>
+    <clipPath id="${id}c"><path d="${body}"/></clipPath>
+    <linearGradient id="${id}s" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset=".16" stop-color="#fff" stop-opacity=".22"/>
+      <stop offset=".32" stop-color="#fff" stop-opacity=".06"/><stop offset=".68" stop-color="#000" stop-opacity=".06"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".42"/></linearGradient>
+    <linearGradient id="${id}l" x1="0" x2="1"><stop offset="0" style="stop-color:var(--steel-dk)"/><stop offset=".35" style="stop-color:var(--steel-lt)"/><stop offset="1" style="stop-color:var(--steel-dk)"/></linearGradient>
+    <radialGradient id="${id}g"><stop offset="0" style="stop-color:var(--shadow)"/><stop offset="1" style="stop-color:var(--shadow)" stop-opacity="0"/></radialGradient>
+    <pattern id="${id}h" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" style="fill:var(--steel-lt)"/><rect width="2.4" height="7" style="fill:var(--ink)"/></pattern>
+  </defs>`;
+  g+=`<ellipse cx="${cx}" cy="${yB+ry+8}" rx="${bw*0.68}" ry="${ry*0.9}" fill="url(#${id}g)"/>`;
+  g+=`<g clip-path="url(#${id}c)"><rect x="${bx-2*B}" y="${yT-ry}" width="${bw+4*B}" height="${yB-yT+2*ry}" style="fill:var(--steel)"/>`;
+  let y=yB+ry; const bands=[];
+  keys.forEach((k,i)=>{ const v=Math.max(0,o[k]); const h=v*s; const top=(i===0? yB : y) - h;
+    if(i>upto || v<=0) return;
+    const y0 = i===0 ? yB+ry : y, bot = i===0 ? yB : y;
+    g+=`<rect x="${bx-2*B}" y="${top}" width="${bw+4*B}" height="${y0-top}" style="fill:var(${cols[i]})"/>`; bands.push({i,top,bot,v,name:names[i]});
+    y = top; });
+  let fillTop=y, adjBand=null;
+  if(upto>=4 && Math.abs(o.ajuste)>0.5){
+    const h=Math.abs(o.ajuste)*s;
+    const top = o.ajuste<0 ? fillTop : fillTop-h, bot = o.ajuste<0 ? fillTop+h : fillTop;
+    g+=`<rect x="${bx-2*B}" y="${top}" width="${bw+4*B}" height="${bot-top}" fill="url(#${id}h)" opacity=".85"/>`;
+    adjBand={top,bot}; if(o.ajuste>0) fillTop=top;
+  }
+  g+=`<rect x="${bx-2*B}" y="${yT-ry}" width="${bw+4*B}" height="${yB-yT+2*ry}" fill="url(#${id}s)"/>`;
+  // costuras entre franjas
+  bands.forEach(b=>{ if(b.i>0) g+=arc(b.bot,'#000',1.2,.28); });
+  if(adjBand) g+=arc(o.ajuste<0?adjBand.bot:adjBand.bot,'#000',1.2,.3);
+  g+=arc(fillTop,'#000',1.4,.35);
+  // aros del barril
+  [0.3,0.7].forEach(t=>{ const yy=yT+(yB-yT)*t; g+=arc(yy+2,'#000',4,.32)+arc(yy-1,'#fff',1.4,.35); });
+  g+=`</g>`;
+  // contorno, fondo y tapa
+  g+=`<path d="${body}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1.2"/>`;
+  g+=arc(yB,'#000',3,.35);
+  g+=`<ellipse cx="${cx}" cy="${yT}" rx="${bw/2}" ry="${ry}" fill="url(#${id}l)" stroke="#000" stroke-opacity=".35" stroke-width="1.2"/>`;
+  g+=`<ellipse cx="${cx}" cy="${yT+1.5}" rx="${bw/2*0.86}" ry="${ry*0.7}" fill="none" stroke="#000" stroke-opacity=".22" stroke-width="1.5"/>`;
+  g+=`<ellipse cx="${cx+bw*0.22}" cy="${yT}" rx="${bw*0.06}" ry="${ry*0.28}" style="fill:var(--steel-dk)" stroke="#000" stroke-opacity=".3"/>`;
+  // total sobre la tapa
+  const tot = upto>=4 ? o.total : bands.reduce((a,b)=>a+b.v,0);
+  g+=`<text x="${cx}" y="${yT-ry-10}" text-anchor="middle" style="font-size:${labels?17:16}px;font-weight:700;fill:var(--ink)">${opt.topLabel?opt.topLabel+' ':''}${money(tot)}</text>`;
+  // etiquetas con línea guía
+  if(labels){
+    const lx=bx+bw+B+34, items=bands.map(b=>({y:(b.top+b.bot)/2,ey:(b.top+b.bot)/2,t:b.name,v:'$'+nf0.format(b.v)+(upto>=4?' · '+nf0.format(b.v/o.total*100)+'%':''),c:cols[b.i]}));
+    if(adjBand) items.push({y:(adjBand.top+adjBand.bot)/2,ey:(adjBand.top+adjBand.bot)/2,t:'Ajuste del Estado',v:(o.ajuste<0?'−':'+')+'$'+nf0.format(Math.abs(o.ajuste)),c:null});
+    // separar etiquetas: de abajo hacia arriba, mínimo 38 px
+    for(let i=1;i<items.length;i++) if(items[i-1].y-items[i].y<38) items[i].y=items[i-1].y-38;
+    const minY=yT-ry+14; if(items.length && items[items.length-1].y<minY){ const d=minY-items[items.length-1].y; items.forEach(it=>it.y+=d); for(let i=items.length-2;i>=0;i--) if(items[i].y-items[i+1].y<38) items[i].y=items[i+1].y+38; }
+    items.forEach(it=>{
+      const ex=bx+bw+xo(it.ey)+2;
+      g+=`<circle cx="${ex}" cy="${it.ey}" r="3" style="fill:var(--ink)"/><path d="M${ex},${it.ey} L${lx-18},${it.ey} L${lx-6},${it.y}" fill="none" style="stroke:var(--muted)" stroke-width="1"/>`;
+      g+= it.c ? `<rect x="${lx}" y="${it.y-14}" width="10" height="10" style="fill:var(${it.c})"/>` : `<rect x="${lx}" y="${it.y-14}" width="10" height="10" fill="url(#${id}h)" style="stroke:var(--ink)" stroke-width=".8"/>`;
+      g+=`<text x="${lx+16}" y="${it.y-5}" style="font-size:13px;fill:var(--muted)">${it.t}</text><text x="${lx+16}" y="${it.y+13}" style="font-size:16px;font-weight:700;fill:var(--ink)">${it.v}</text>`;
+    });
+  }
+  el.innerHTML=`<svg viewBox="0 0 ${Wd} ${H}" width="${Wd}" height="${H}" style="max-width:100%;height:auto">${g}</svg>`;
+}
+
+let SIM=null, LAST=null;
+function drawBarrels(){
+  if(!LAST) return; const {now,full}=LAST;
+  barrelSVG($('#barrel1'), now, {});
+  barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<4?'Va en':''});
+  const mx=Math.max(posSum(now),posSum(full))*1.04;
+  barrelSVG($('#barrel3a'), now, {labels:false, max:mx, H:290});
+  barrelSVG($('#barrel3b'), full, {labels:false, max:mx, H:290});
+  $('#barrel3a').setAttribute('aria-label','Precio de hoy '+money(now.total));
+  $('#barrel3b').setAttribute('aria-label','Precio con tus valores '+money(full.total));
+}
+function render(){
+  SIM=simulate(P);
+  const now=parts(fuel,'hoy'), full=parts(fuel,'pleno');
+  const c = fuel==='g95'?null:D.combustibles[fuel];
+  const fname = NAME[fuel], fl = fname.toLowerCase().replace('bencina','bencina');
+
+  // ---- 1
+  $('#p-now').textContent=money(now.total);
+  $('#p-unit').textContent='por litro · '+fname+' · promedio estimado en la Región Metropolitana';
+  const taxes = now.impuestos + now.ajuste;
+  const adjTxt = Math.abs(now.ajuste)<0.5 ? '' :
+    now.ajuste<0 ? ` Esta semana el Estado además cobra <b>${money(-now.ajuste)}</b> menos de impuesto para frenar las alzas; sin esa rebaja el litro costaría ${money(now.total-now.ajuste)}.`
+                 : ` Esta semana el Estado cobra <b>${money(now.ajuste)}</b> extra de impuesto para frenar una baja.`;
+  $('#s1-text').innerHTML = `De cada litro, <b>${money(now.petroleo+now.refinar)}</b> es lo que cuesta el combustible puesto en Chile, <b>${money(now.estacion)}</b> se lo llevan la distribución y la estación, y <b>${money(now.impuestos)}</b> son impuestos.`+adjTxt;
+  $('#barrel1').setAttribute('aria-label',`Barril con la composición del precio de ${fname}: petróleo ${money(now.petroleo)}, refinar y traer ${money(now.refinar)}, estación ${money(now.estacion)}, impuestos ${money(now.impuestos)}, ajuste del Estado ${money(now.ajuste)}.`);
+  $('#cap1').innerHTML=`<b>Gráfico 1.</b> Composición del precio por litro, ${fl}, vigente desde el ${ddmmyy(D.vigencia)}. Cada franja del barril es una parte del precio, de abajo hacia arriba en el orden en que se suma. La franja rayada es impuesto que el Estado deja de cobrar esta semana. Fuente: CNE, SII, ENAP; margen de estación estimado.`;
+
+  // ---- 2
+  const sN = fuel==='diesel';
+  const parD = fuel==='g95' ? (D.combustibles.g93.paridad+D.combustibles.g97.paridad)/2 : c.paridad;
+  const iebTxt = sN ? '1,5 UTM por metro cúbico' : '6 UTM por metro cúbico';
+  const steps = [
+    ['Petróleo crudo', now.petroleo, `Chile toma como referencia el Brent, el petróleo del Mar del Norte. Un barril tiene 159 litros. El precio vigente usa el promedio de las cuatro semanas anteriores, cuando el Brent promedió US$${nf1.format(CAL.bWin)}; hoy está en US$${nf1.format(D.mercado.brent)}.`, 'Por eso los precios en Chile reaccionan con unas semanas de atraso.'],
+    ['Refinarlo y traerlo a Chile', now.refinar, `Chile no compra crudo para fijar el precio: compra ${sN?'diésel ya refinado':'bencina ya refinada'} en la costa del Golfo de EE.UU., y paga el barco, el seguro y el ajuste de calidad. La CNE suma todo eso en el <b>costo de importar</b> (precio de paridad): ${money(parD)} por litro esta semana.`, sN?'Hoy el diésel refinado está muy caro respecto del crudo. Esa es la razón principal de su alza.':'Hoy la bencina refinada está barata respecto del crudo, lo que ayuda a contener su precio.'],
+    ['Distribución y estación', now.estacion, `ENAP vende al por mayor a las distribuidoras, y la estación agrega su margen por transporte, operación y ganancia. En Santiago ese margen ronda los ${money((fuel==='g95'?D.combustibles.g95.margen:c.margen)||0)} por litro con IVA.`, 'Es la única parte que cambia entre una estación y otra.'],
+    ['Impuestos', now.impuestos, `Dos impuestos: el <b>impuesto específico</b>, fijo en ${iebTxt} (${money(now.ieb)} por litro), y el <b>IVA</b> de 19%, que se cobra sobre todo lo anterior menos el impuesto específico (${money(now.iva)}).`, 'La UTM se reajusta cada mes con la inflación, así que el impuesto específico sube un poco cada mes.'],
+    ['Ajuste del Estado (MEPCO)', now.ajuste, `Para que el precio no salte cada semana, el Estado sube o baja el impuesto específico. Así, el precio mayorista de ENAP solo cambia cada tres semanas y como máximo en torno a 2,4%. Esta semana el ajuste es de ${now.ajuste<0?'−':'+'}${money(Math.abs(now.ajuste))} por litro.`, 'Cuando el ajuste es negativo, el Estado deja de recaudar; cuando es positivo, recupera.']
+  ];
+  const sw=['--s-oil','--s-ref','--s-sta','--s-tax'];
+  renderFlow(now, steps);
+  $('#chain').innerHTML = steps.map(([t,v,txt,note],i)=>`<li><span class="k">${i+1}</span><h3><span class="sw ${i===4?'adj':''}" ${i<4?`style="background:var(${sw[i]})"`:''}></span>${t}</h3><span class="amt">${i===4?(v<0?'−':v>0?'+':''):''}${money(Math.abs(v))}</span><p>${txt}<span class="muted">${note}</span></p></li>`).join('');
+
+  // ---- 3
+  $('#o-brent').textContent='US$ '+nf1.format(P.brent);
+  $('#o-fx').textContent='$'+nf0.format(P.fx);
+  $('#o-sg').textContent='US$ '+nf0.format(CAL.S.g93+P.dSg);
+  $('#o-sd').textContent='US$ '+nf0.format(CAL.S.diesel+P.dSd);
+  $('#o-m').textContent='$'+nf0.format(margin(fuel));
+  const gap=full.total-now.total, pi=parInst(fuel);
+  $('#result').innerHTML=`<div><span class="k">Precio de hoy</span><span class="v">${money(now.total)}</span></div>
+    <div><span class="k">Con tus valores, traspaso completo</span><span class="v">${money(full.total)}</span></div>
+    <div><span class="k">Diferencia</span><span class="v ${cls(gap)}">${Math.abs(gap)<0.5?'0':delta(gap)}</span></div>`;
+  LAST={now,full};
+  drawBarrels();
+  $('#leg2').innerHTML=SEG.map(([,n,c])=>`<span><span class="sw" style="background:var(${c})"></span>${n}</span>`).join('')+`<span><span class="sw adj"></span>Ajuste del Estado</span>`;
+  $('#cap2').innerHTML=`<b>Gráfico 2.</b> Precio de ${fl} hoy y con un Brent de US$${nf1.format(P.brent)} y un dólar de $${nf0.format(P.fx)} traspasados completos, sin ajuste del Estado. Costo de importar con tus valores: ${money(pi)} por litro.`;
+  const nx = SIM.pump(fuel,3,false)-now.total;
+  $('#s3-text').innerHTML = Math.abs(gap)<3
+    ? `Con estos valores el precio de hoy ya refleja el costo. No debería moverse mucho.`
+    : `Si el Brent y el dólar se quedaran en estos valores, la ${fl} ${gap>0?'debería subir':'debería bajar'} <b>${money(Math.abs(gap))}</b> por litro. Ese cambio no llega de golpe: el MEPCO lo reparte en tramos cada tres semanas. En la próxima fijación (${longDate(SIM.T[3])}) ${Math.abs(nx)<0.5?'no cambiaría':(nx>0?'subiría':'bajaría')+' unos <b>'+money(Math.abs(nx))+'</b>'}.`;
+  const m=D.mercado||{};
+  $('#mkt').textContent=`Valores de partida (cierre del ${m.fecha?ddmmyy(m.fecha):'—'}): Brent US$${nf2.format(m.brent)} · WTI US$${nf2.format(m.wti)} · dólar $${nf2.format(m.fx)}.`;
+
+  // ---- 4
+  renderFuture();
+  // ---- anexo
+  renderSens(); renderTech(now,full); renderProj();
+}
+
+const ICONS = [
+  '<rect x="8" y="4" width="16" height="24" rx="3"/><path d="M8 11h16M8 21h16"/>',
+  '<path d="M4 19h24l-3.5 6h-17z"/><path d="M10 19v-6h9v6M13 13V8h3"/><path d="M3 29c2.5 0 2.5-1.5 5-1.5s2.5 1.5 5 1.5 2.5-1.5 5-1.5 2.5 1.5 5 1.5 2.5-1.5 5-1.5"/>',
+  '<rect x="5" y="5" width="13" height="23" rx="1.5"/><path d="M5 12h13M8.5 17h6"/><path d="M18 9l5 4v10.5a2 2 0 0 0 4 0V12l-3-3"/>',
+  '<path d="M8 4h16v24l-2.7-2-2.6 2-2.7-2-2.7 2-2.6-2L8 28z"/><path d="M12 10h8M12 15h8M12 20h5"/>',
+  '<path d="M16 5v21M11 27h10M6 9h20"/><path d="M6 9l-3.5 8a3.5 3.5 0 0 0 7 0zM26 9l-3.5 8a3.5 3.5 0 0 0 7 0z"/>'
+];
+const FLOWKEYS = ['petroleo','refinar','estacion','impuestos','ajuste'];
+let flowStep = 0;
+function renderFlow(now, steps){
+  const cum=[]; let acc=0; FLOWKEYS.forEach(k=>{acc+=now[k]; cum.push(acc);});
+  const cols=['--s-oil','--s-ref','--s-sta','--s-tax'];
+  $('#flow').innerHTML = steps.map(([t,v],i)=>`<button type="button" class="node ${i===flowStep?'on':''} ${i>flowStep?'off':''}" data-step="${i}" aria-pressed="${i===flowStep}">
+      <svg viewBox="0 0 32 32" aria-hidden="true">${ICONS[i]}</svg>
+      <span class="nm"><span class="sw ${i===4?'adj':''}" ${i<4?`style="background:var(${cols[i]})"`:''}></span> ${t}</span>
+      <span class="av">${i===4?(v<0?'−':v>0?'+':''):(i?'+':'')}${money(Math.abs(v))}</span>
+      <span class="ac">va en ${money(cum[i])}</span>
+      <span class="hint">Paso ${i+1} de 5</span>
+    </button>`).join('');
+  document.querySelectorAll('#flow .node').forEach(b=>b.addEventListener('click',()=>{ flowStep=+b.dataset.step; renderFlow(now,steps); highlightChain();
+    barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<4?'Va en':''}); }));
+  $('#cap-flow').innerHTML = `<b>Diagrama 1.</b> Cómo se va sumando el precio de un litro de ${NAME[fuel].toLowerCase()}. Etapa seleccionada: <b>${steps[flowStep][0].toLowerCase()}</b>.`;
+}
+function highlightChain(){ document.querySelectorAll('#chain li').forEach((li,i)=>li.classList.toggle('hl',i===flowStep)); }
+
+function renderFuture(){
+  const T=SIM.T, s=SIM.f[fuel];
+  const pump=s.M.map((v,k)=>SIM.pump(fuel,k,false)), pumpF=s.MF.map((v,k)=>SIM.pump(fuel,k,true));
+  const fix=T.map((t,i)=>i).filter(i=>i>0&&i%3===0);
+  const k1=fix[0], d1=pump[k1]-pump[0];
+  const fl=NAME[fuel].toLowerCase();
+  $('#s4-text').innerHTML=`ENAP cambia sus precios cada tres semanas. La próxima fijación es el <b>${longDate(T[k1])}</b>. Con los valores del punto 3, la ${fl} <b>${move(d1)}</b> ${Math.abs(d1)<0.5?'':`(de ${money(pump[0])} a ${money(pump[k1])})`}.`;
+  const fr=D.congelamiento||{};
+  if(fr.estado){
+    const kF=T.findIndex(t=>t>=fr.desde), rb=fuel==='g95'?((fr.rebaja.g93+fr.rebaja.g97)/2):(fr.rebaja||{})[fuel]||0;
+    $('#s4-freeze').innerHTML=`<b>Congelamiento propuesto</b> (${esc(fr.estado)}): el Gobierno acordó revertir el alza del 12 de noviembre y no permitir nuevas alzas hasta el ${ddmmyy(fr.hasta)}. Para la ${fl} significa ${rb? 'bajar '+money(rb)+' por litro desde el '+(kF>0?longDate(T[kF]):'—'):'mantener el precio'}, y después solo mantenerse o bajar. La línea roja del gráfico muestra ese escenario.`;
+  } else $('#s4-freeze').textContent='';
+  const geo = lineChart($('#chart'),[{v:pump,col:'--navy',w:2.6,name:'Reglas actuales'},{v:pumpF,col:'--accent',w:2.2,dash:'6 4',name:'Con congelamiento'}],T,fix);
+  const svg=$('#chart svg'), guide=svg.querySelector('#guide');
+  const show=i=>{
+    i=Math.max(0,Math.min(T.length-1,i));
+    guide.setAttribute('x1',geo.x(i)); guide.setAttribute('x2',geo.x(i)); guide.style.opacity=1;
+    const isFix=i%3===0;
+    $('#readout').innerHTML=`<b>Semana del ${longDate(T[i])}</b>${i===0?' (hoy)':isFix?' · día de fijación':''}: con las reglas actuales <b>${money(pump[i])}</b> · con congelamiento <b style="color:var(--accent)">${money(pumpF[i])}</b>.`;
+  };
+  const pick=e=>{ const r=svg.getBoundingClientRect(); const vx=(e.clientX-r.left)/r.width*geo.W; show(Math.round((vx-geo.ml)/(geo.W-geo.ml-geo.mr)*(T.length-1))); };
+  svg.addEventListener('pointermove',pick); svg.addEventListener('pointerdown',pick);
+  svg.addEventListener('pointerleave',()=>show(k1));
+  show(k1);
+  $('#leg3').innerHTML=`<span><i style="border-color:var(--navy)"></i>Con las reglas actuales del MEPCO</span><span><i style="border-color:var(--accent);border-top-style:dashed"></i>Si se aprueba el congelamiento</span>`;
+  $('#cap3').innerHTML=`<b>Gráfico 3.</b> Precio estimado por litro de ${fl} en la Región Metropolitana, semana a semana, si el Brent y el dólar se quedan en los valores del punto 3. Las líneas verticales son los días de fijación; toca o pasa el cursor sobre el gráfico para ver cada semana. Modelo propio con la regla de la Ley 20.765.`;
+  const rows=[0,...fix.slice(0,5)];
+  $('#t-fix').innerHTML=`<thead><tr><th>Fijación</th><th>Reglas actuales</th><th>Con congelamiento</th></tr></thead><tbody>`+
+    rows.map((k,j)=>{const p=j?rows[j-1]:0;const a=pump[k]-pump[p],b=pumpF[k]-pumpF[p];
+      return `<tr><td>${k===0?'Hoy ('+ddmmyy(T[0])+')':ddmmyy(T[k])}</td><td>${nf0.format(pump[k])}<span class="d ${cls(a)}">${k?delta(a):'vigente'}</span></td><td>${nf0.format(pumpF[k])}<span class="d ${cls(b)}">${k?delta(b):'vigente'}</span></td></tr>`;}).join('')+`</tbody>`;
+}
+
+function lineChart(el, series, T, marks){
+  const W=900,Hh=310,ml=58,mr=70,mt=28,mb=34;
+  const all=series.flatMap(s=>s.v); let lo=Math.min(...all),hi=Math.max(...all);
+  const span=Math.max(hi-lo,60), pad=span*0.15; lo=lo-pad; hi=hi+pad;
+  const st = span<=150?20:span<=400?50:100; lo=Math.floor(lo/st)*st; hi=Math.ceil(hi/st)*st;
+  const n=T.length, x=i=>ml+(W-ml-mr)*i/(n-1), y=v=>mt+(Hh-mt-mb)*(1-(v-lo)/(hi-lo));
+  let g='';
+  for(let v=lo;v<=hi+0.1;v+=st) g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${ml-8}" y="${y(v)+4}" text-anchor="end">${nf0.format(v)}</text>`;
+  g+=`<text x="${ml}" y="${mt-12}" text-anchor="start" style="font-size:11px">$ por litro</text>`;
+  marks.forEach(i=>g+=`<line x1="${x(i)}" x2="${x(i)}" y1="${mt}" y2="${Hh-mb}" stroke="var(--muted)" stroke-dasharray="2 4" opacity=".6"/><text x="${x(i)}" y="${Hh-12}" text-anchor="middle">${ddmm(T[i])}</text>`);
+  g+=`<text x="${x(0)}" y="${Hh-12}" text-anchor="start">hoy</text>`;
+  const labs=[];
+  series.forEach(s=>{
+    let d=''; s.v.forEach((v,i)=>{ d+= i===0?`M${x(0)},${y(v)}`:`H${x(i)}V${y(v)}`; });
+    g+=`<path d="${d}" fill="none" stroke="var(${s.col})" stroke-width="${s.w}" ${s.dash?`stroke-dasharray="${s.dash}"`:''}/>`;
+    const last=s.v[n-1]; labs.push({y:y(last),t:nf0.format(last),col:s.col});
+  });
+  labs.sort((a,b)=>a.y-b.y); for(let i=1;i<labs.length;i++) if(labs[i].y-labs[i-1].y<15) labs[i].y=labs[i-1].y+15;
+  labs.forEach(l=>g+=`<text x="${W-mr+8}" y="${l.y+4}" style="fill:var(${l.col});font-weight:600">${l.t}</text>`);
+  g+=`<line id="guide" x1="0" x2="0" y1="${mt}" y2="${Hh-mb}" stroke="var(--ink)" stroke-width="1" style="opacity:0"/>`;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Proyección del precio por litro. Toca o pasa el cursor para ver cada semana." style="cursor:crosshair;touch-action:pan-y">${g}</svg>`;
+  return {x,W,ml,mr};
+}
+
+function renderHist(){
+  const el=$('#hist');
+  if(!H||!H.filas||!H.filas.length){ el.innerHTML='<p class="muted small">Sin historial cargado.</p>'; return; }
+  const rows=H.filas, pick=r=>fuel==='g95'?(r.g93+r.g97)/2:fuel==='diesel'?r.d:r[fuel];
+  const vals=rows.map(r=>pick(r)*r.u/1000);
+  const W=900,Hh=250,ml=50,mr=10,mt=12,mb=30;
+  let lo=Math.min(0,...vals),hi=Math.max(0,...vals); const st=hi-lo>400?100:50; lo=Math.floor(lo/st)*st; hi=Math.ceil(hi/st)*st;
+  const n=vals.length,bw=(W-ml-mr)/n,y=v=>mt+(Hh-mt-mb)*(1-(v-lo)/(hi-lo));
+  let g='';
+  for(let v=lo;v<=hi;v+=st) g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${ml-6}" y="${y(v)+4}" text-anchor="end">${nf0.format(v)}</text>`;
+  vals.forEach((v,i)=>g+=`<rect x="${ml+i*bw+1}" width="${Math.max(1,bw-2)}" y="${Math.min(y(v),y(0))}" height="${Math.max(.5,Math.abs(y(v)-y(0)))}" fill="var(${v<0?'--s-oil':'--s-tax'})"><title>${ddmmyy(rows[i].f)}: ${v<0?'−':'+'}$${nf1.format(Math.abs(v))} por litro</title></rect>`);
+  g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)"/>`;
+  let lm=''; rows.forEach((r,i)=>{const mo=+r.f.slice(5,7); if(mo!==+lm){lm=mo; g+=`<text x="${ml+i*bw}" y="${Hh-10}">${MESES[mo-1].slice(0,3)}</text>`;}});
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Ajuste semanal del impuesto específico en 2026">${g}</svg>`;
+  const mi=vals.indexOf(Math.min(...vals));
+  $('#histText').innerHTML=`Las barras azules son semanas en que el Estado cobró menos impuesto para frenar alzas; las rojas, semanas en que cobró más para frenar bajas. Para la ${NAME[fuel].toLowerCase()}, la mayor rebaja fue de <b>${money(-vals[mi])}</b> por litro, el ${ddmmyy(rows[mi].f)}. Esta semana es de ${vals[n-1]<0?'−':'+'}${money(Math.abs(vals[n-1]))}.`;
+  $('#cap4').innerHTML=`<b>Gráfico 4.</b> Componente variable del impuesto específico, ${NAME[fuel].toLowerCase()}, en pesos por litro. Fuente: SII.`;
+}
+
+function renderSens(){
+  const base=simulate(P);
+  const cases=[['Brent +US$10',{brent:P.brent+10}],['Dólar +$50',{fx:P.fx+50}],['Refinación +US$10',{dSg:P.dSg+10,dSd:P.dSd+10}]];
+  const sims=cases.map(([,ch])=>{const p={...P,...ch};return{p,s:simulate(p)};});
+  $('#t-sens').innerHTML=`<thead><tr><th>Combustible</th>${cases.map(c=>`<th>${c[0]}<span class="d">de golpe · próxima fijación</span></th>`).join('')}</tr></thead><tbody>`+
+    FUELS.map(f=>{const f0=parts(f,'pleno').total;
+      return `<tr><td>${NAME[f]}</td>`+sims.map(({p,s})=>{const f1=parts(f,'pleno',p).total; const nx=s.pump(f,3,false)-base.pump(f,3,false);
+        return `<td>${delta(f1-f0)} · ${delta(nx)}</td>`;}).join('')+`</tr>`;}).join('')+`</tbody>`;
+}
+function renderTech(now,full){
+  const r=[['Petróleo crudo','petroleo'],['Refinarlo y traerlo a Chile','refinar'],['Distribución y estación (sin IVA)','estacion'],['Impuesto específico base','ieb'],['IVA 19%','iva'],['Ajuste del Estado (componente variable)','ajuste']];
+  $('#t-tech').innerHTML=`<thead><tr><th>${NAME[fuel]}, $ por litro</th><th>Hoy</th><th>Traspaso completo</th><th>Diferencia</th></tr></thead><tbody>`+
+    r.map(([n,k])=>{const d=full[k]-now[k];return `<tr><td>${n}</td><td>${nf1.format(now[k])}</td><td>${nf1.format(full[k])}</td><td class="${cls(d)}">${delta(d)}</td></tr>`;}).join('')+
+    `</tbody><tfoot><tr><td>Total</td><td>${nf0.format(now.total)}</td><td>${nf0.format(full.total)}</td><td>${delta(full.total-now.total)}</td></tr></tfoot>`;
+}
+function renderProj(){
+  const s=SIM.f[fuel],T=SIM.T, fix=[0,...T.map((t,i)=>i).filter(i=>i>0&&i%3===0)];
+  $('#t-proj').innerHTML=`<thead><tr><th>Jueves</th><th>Costo de importar</th><th>Techo de la banda</th><th>Ajuste del Estado</th><th>Mayorista ENAP</th><th>En estación</th></tr></thead><tbody>`+
+    fix.map(k=>{const adj=s.M[k]-s.base[k];return `<tr><td>${ddmmyy(T[k])}</td><td>${nf1.format(s.par[k])}</td><td>${nf1.format(s.sup[k])}</td><td>${Math.abs(adj)<0.05?'0':(adj<0?'−':'+')+nf1.format(Math.abs(adj))}</td><td>${nf1.format(s.M[k])}</td><td>${nf0.format(SIM.pump(fuel,k,false))}</td></tr>`;}).join('')+`</tbody>`;
+}
+function renderMkt(){
+  const m=D.mercado||{}, rows=[];
+  const add=(n,v,src)=>{ if(v!=null) rows.push(`<tr><td>${n}</td><td>${v}</td><td>${src}</td></tr>`); };
+  add('Petróleo Brent (US$/barril)',m.brent!=null?nf2.format(m.brent):null,'Referencia de la banda del MEPCO');
+  add('Petróleo WTI (US$/barril)',m.wti!=null?nf2.format(m.wti):null,'Referencia de EE.UU.; no entra en la fórmula chilena');
+  add('Gasolina RBOB (US$/galón)',m.rbob!=null?nf2.format(m.rbob):null,'Aproxima la bencina del Golfo de EE.UU.');
+  add('Diésel ULSD (US$/galón)',m.ulsd!=null?nf2.format(m.ulsd):null,'Aproxima el diésel del Golfo de EE.UU.');
+  add('Dólar observado ($)',m.fx!=null?nf2.format(m.fx):null,'Banco Central');
+  add('UTM del mes ($)',nf0.format(D.utm),'SII');
+  (D.semanas||[]).forEach(w=>add('Semana del '+ddmm(w.lunes)+(w.parcial?' (en curso)':''),'Brent '+nf2.format(w.brent)+' · dólar '+nf2.format(w.fx),'Promedio semanal'));
+  $('#t-mkt').innerHTML=`<thead><tr><th>Indicador</th><th>Valor</th><th>Para qué sirve</th></tr></thead><tbody>${rows.join('')}</tbody>`+`<tfoot><tr><td colspan="3" class="muted small" style="font-weight:400">Cierre del ${m.fecha?ddmmyy(m.fecha):'—'}. Se actualizan cada jueves.</td></tr></tfoot>`;
+}
+const GLOSS=[
+  ['Brent','Tipo de petróleo del Mar del Norte. Es la referencia mundial de precio y la que usa Chile para el MEPCO. Se cotiza en dólares por barril (159 litros).'],
+  ['WTI','Petróleo de referencia de EE.UU. Suele costar unos US$5–7 menos que el Brent. No entra directamente en el cálculo chileno.'],
+  ['Costo de importar (paridad)','Lo que costaría traer a Chile un litro de combustible ya refinado: precio en el Golfo de EE.UU. más barco, seguro y ajustes. Lo calcula la CNE cada semana.'],
+  ['ENAP','Empresa Nacional del Petróleo, estatal. Refina e importa, y vende al por mayor a las distribuidoras. Cada miércoles publica cuánto variará su precio.'],
+  ['Precio mayorista','Precio al que ENAP vende a las distribuidoras, con impuestos incluidos.'],
+  ['Fijación','El jueves en que cambia el precio mayorista. Ocurre cada tres semanas.'],
+  ['MEPCO','Mecanismo de Estabilización de Precios de los Combustibles (Ley 20.765). Ajusta el impuesto específico para que el precio suba o baje de a poco.'],
+  ['Componente variable','La parte del impuesto específico que mueve el MEPCO. Negativa: el Estado cobra menos. Positiva: cobra más.'],
+  ['Banda de referencia','Rango de ±5% alrededor de un precio de referencia que calcula la CNE con el promedio histórico del Brent. El precio ajustado debe quedar dentro de ese rango.'],
+  ['Impuesto específico','Impuesto fijo por litro: 6 UTM por metro cúbico en bencinas y 1,5 en diésel. No paga IVA.'],
+  ['UTM','Unidad Tributaria Mensual. Un valor en pesos que el SII reajusta cada mes con la inflación.'],
+  ['Margen de refinación','Diferencia entre el precio del combustible refinado y el del crudo. Sube cuando faltan refinerías o hay alta demanda.'],
+  ['Octanaje (93, 95, 97)','Mide la resistencia de la bencina a detonar antes de tiempo en el motor. Más octanos, bencina más cara.']
+];
+
+function renderStatic(){
+  const next=(D.proximasFijaciones||[]).find(d=>d>D.vigencia), upd=D.actualizado?new Date(D.actualizado):null;
+  $('#meta').innerHTML=`<span>Precios vigentes desde el ${ddmmyy(D.vigencia)}</span>${next?`<span>Próxima fijación: ${ddmmyy(next)}</span>`:''}${upd?`<span>Datos actualizados el ${upd.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'})}; se renuevan cada jueves</span>`:''}`;
+  $('#gloss').innerHTML=GLOSS.map(([t,d])=>`<dt>${t}</dt><dd>${d}</dd>`).join('');
+  $('#caveats').innerHTML=(D.supuestos||[]).map(s=>`<li>${esc(s)}</li>`).join('');
+  $('#sources').textContent='Fuentes: '+(D.fuentes||[]).join(' · ');
+  renderMkt(); renderHist();
+}
+function renderAll(){ renderStatic(); render(); }
+const _render = render;
+render = function(){ _render(); renderHist(); };
+
+// ================= datos =================
+let started=false;
+function start(){ $('#loading')?.remove(); build(); prepare(); resetParams(); syncInputs(); renderAll();
+  // los barriles se dibujan al ancho real del contenedor; se rehacen si cambia el ancho
+  let lastW=0, t=null;
+  try{ new ResizeObserver(es=>{ const w=Math.round(es[0].contentRect.width); if(Math.abs(w-lastW)<8) return; lastW=w; clearTimeout(t); t=setTimeout(drawBarrels,80); }).observe($('#app')); }catch(e){}
+}
+function fail(msg){ const l=$('#loading'); if(l) l.textContent=msg; $('#meta').innerHTML='<span>Sin datos</span>'; }
+(async()=>{
+  // Los datos viven en data/actual.json y data/historial.json; la tarea semanal los actualiza cada jueves.
+  try{
+    const [a,h] = await Promise.all([
+      fetch('data/actual.json',{cache:'no-cache'}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch('data/historial.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null)
+    ]);
+    D=a; H=h; started=true; start();
+  }catch(e){ fail('No se pudieron cargar los datos ('+e.message+'). Si abriste el archivo directo desde tu computador, ábrelo con un servidor local o desde GitHub Pages.'); }
+})();
+})();
+</script>
+</body>
+</html>

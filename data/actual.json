@@ -1,0 +1,62 @@
+{
+  "actualizado": "2026-11-13T11:00:00-03:00",
+  "vigencia": "2026-11-12",
+  "utm": 72440,
+  "semanas": [
+    {"lunes": "2026-10-12", "brent": 106.84, "fx": 982.63},
+    {"lunes": "2026-10-19", "brent": 107.32, "fx": 981.09},
+    {"lunes": "2026-10-26", "brent": 110.5, "fx": 988.82},
+    {"lunes": "2026-11-02", "brent": 99.9, "fx": 979.39},
+    {"lunes": "2026-11-09", "brent": 93.6, "fx": 977.81, "parcial": true}
+  ],
+  "mercado": {
+    "fecha": "2026-11-12",
+    "brent": 95.82,
+    "wti": 88.74,
+    "rbob": null,
+    "ulsd": null,
+    "fx": 984.49,
+    "nota": "RBOB y ULSD se completan con la próxima actualización."
+  },
+  "combustibles": {
+    "g93": {
+      "paridad": 913.6, "bandaSup": 886.5, "deriva": -0.43, "futPeso": 0.35,
+      "cvUTM": -0.3852, "iebUTM": 6, "mayorista": 1502.3, "margen": 63.4, "premio": 7.1,
+      "base": [{"f": "2026-10-29", "v": 1623.5}, {"f": "2026-11-05", "v": 1602.0}, {"f": "2026-11-12", "v": 1530.2}]
+    },
+    "g97": {
+      "paridad": 1042.7, "bandaSup": 940.3, "deriva": 2.6, "futPeso": 0.20,
+      "cvUTM": -1.4450, "iebUTM": 6, "mayorista": 1579.3, "margen": 79.4, "premio": 7.1,
+      "base": [{"f": "2026-10-29", "v": 1804.0}, {"f": "2026-11-05", "v": 1775.0}, {"f": "2026-11-12", "v": 1684.0}]
+    },
+    "diesel": {
+      "paridad": 1308.0, "bandaSup": 1159.1, "deriva": 14.6, "futPeso": 0.23,
+      "cvUTM": -2.2784, "iebUTM": 1.5, "mayorista": 1516.9, "margen": 70, "premio": 14.1,
+      "base": [{"f": "2026-10-29", "v": 1753.1}, {"f": "2026-11-05", "v": 1760.9}, {"f": "2026-11-12", "v": 1682.0}]
+    },
+    "g95": {"margen": 51.9}
+  },
+  "proximasFijaciones": ["2026-12-03", "2026-12-24", "2027-01-14", "2027-02-04", "2027-02-25", "2027-03-18"],
+  "congelamiento": {
+    "estado": "proyecto de ley en el Congreso, aún no aprobado",
+    "detalle": "Acuerdo del 12-11 con gremios de camioneros: revertir el alza del 12-11 (−$38,7 gasolinas) y bajar el diésel $142/L, y desde ahí solo mantener o bajar hasta el 31-03-2027. El modelo lo aplica desde el jueves 19-11 en la línea roja punteada del gráfico.",
+    "desde": "2026-11-19",
+    "hasta": "2027-03-31",
+    "rebaja": {"g93": 38.7, "g97": 38.7, "diesel": 142}
+  },
+  "supuestos": [
+    "Precios en bomba = promedio estimado de la Región Metropolitana: precio previo al 12-11 (La Tercera / Bencina en Línea) más el alza informada por ENAP. El diésel en bomba es una estimación con margen de $70/L.",
+    "La paridad usa precios Argus que no son públicos. El modelo la reemplaza por Brent (futuros ICE) más un diferencial que se recalibra con cada decreto de la CNE.",
+    "La banda de referencia se proyecta con la deriva semanal de la CNE y el peso de los futuros del Brent. Hacienda puede cambiar los parámetros n, m, s y alfa, como hizo varias veces en 2026.",
+    "Desde el 30-07-2026 Hacienda aplicó el MEPCO con criterio discrecional. La proyección sigue la regla de la ley (umbral 2,4% y banda ±5%).",
+    "Los márgenes de las estaciones varían por comuna y por semana; el simulador permite moverlos."
+  ],
+  "fuentes": [
+    "CNE, informes técnicos MEPCO y decretos de paridad y referencia (Diario Oficial)",
+    "SII, componentes del impuesto específico 2026 y UTM",
+    "ENAP, informe semanal de precios estimados (11-11-2026)",
+    "Banco Central / SII, dólar observado",
+    "OCEC-UDP, boletines MEPCO",
+    "Investing / Trading Economics, Brent y WTI"
+  ]
+}
