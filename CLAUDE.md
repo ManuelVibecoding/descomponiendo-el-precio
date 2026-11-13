@@ -15,11 +15,12 @@ Proyecto de Manuel Amenábar. Página estática que explica y proyecta el precio
 - `data/historial.json`: `filas` con `{f, u, g93, g97, d}` (fecha jueves, UTM, componente variable en UTM/m³).
 - `scripts/validar.mjs`: correr después de cada actualización.
 
-## Configuración pendiente (una sola vez)
-1. Crear el repositorio público `barril-a-bomba` en la cuenta de Manuel y subir este contenido: `git init -b main && git add . && git commit -m "Primera versión de Barril a Bomba"` y luego `gh repo create barril-a-bomba --public --source . --push`.
-2. Activar GitHub Pages desde `main`, carpeta `/`: `gh api -X POST repos/{owner}/barril-a-bomba/pages -f "source[branch]=main" -f "source[path]=/"`.
-3. Reemplazar `__PAGES_URL__` en `index.html` por la URL real de Pages (por ejemplo `https://usuario.github.io/barril-a-bomba`), para que la imagen de vista previa aparezca al compartir el link por WhatsApp.
-4. Crear la tarea programada semanal (abajo).
+## Publicación (configurada el 13-11-2026)
+- Repositorio: https://github.com/ManuelVibecoding/barril-a-bomba (cuenta ManuelVibecoding, no Manuel-vibecoder).
+- Página: https://manuelvibecoding.github.io/barril-a-bomba/ (GitHub Pages desde `main`, carpeta raíz).
+- Carpeta local: `C:\Users\mjame\Desktop\Proyectos\barril-a-bomba`. El repositorio usa GitHub CLI (`C:\Program Files\GitHub CLI\gh.exe`) como credencial de git, configurado solo en este repo.
+- Las etiquetas `og:url` y `og:image` de `index.html` apuntan a la URL de Pages; si la URL cambia, actualizarlas.
+- Tarea programada en la app de Claude: "Barril a Bomba semanal (GitHub)", jueves 18:39 hora de Santiago.
 
 ## Actualización semanal (jueves en la tarde, hora de Santiago)
 1. SII (`sii.cl/valores_y_fechas/mepco/mepco<año>.htm`): componente variable vigente desde el jueves para 93, 97 y diésel. Agregar una fila a `historial.filas`.

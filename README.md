@@ -35,8 +35,10 @@ CNE (informes técnicos MEPCO y decretos de paridad y referencia), SII (impuesto
 ## Ver en local
 
 ```bash
-python3 -m http.server 8000
+python -m http.server 8000
 # abrir http://localhost:8000
 ```
+
+Página publicada: https://manuelvibecoding.github.io/barril-a-bomba/
 
 Hecho por Manuel Amenábar.
