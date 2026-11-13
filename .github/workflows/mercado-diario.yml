@@ -1,0 +1,40 @@
+# Actualiza cada día hábil el Brent, WTI, RBOB, ULSD y el dólar observado en data/actual.json,
+# valida los datos y publica. Los precios oficiales (ENAP, CNE, SII) los actualiza la tarea de los jueves.
+name: Mercado diario
+
+on:
+  schedule:
+    - cron: '15 11 * * 2-6'   # 08:15 en Santiago (07:15 en invierno), martes a sábado: cierres de lunes a viernes
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: datos
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Traer Brent, WTI, RBOB, ULSD y dólar observado
+        run: node scripts/actualizar-mercado.mjs
+      - name: Validar datos
+        run: node scripts/validar.mjs
+      - name: Guardar y publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet; then echo "Sin cambios"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Mercado diario $(TZ=America/Santiago date +%F)"
+          git pull --rebase origin main
+          git push origin main
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" --silent || echo "Pages se publicará con el próximo cambio"

@@ -350,7 +350,7 @@ function simulate(p=P){
     const r={par:[],sup:[],inf:[],base:[],M:[],MF:[],full:[]};
     out.T.forEach((T,k)=>{
       const par = k===0 ? c.paridad : [-31,-24,-17,-10].map(n=>val(f,addDays(T,n))).reduce((a,b)=>a+b,0)/4;
-      const intk = int0 + (c.deriva||0)*Math.min(k,c.derivaSemanas??10) + (c.futPeso||0)*(p.brent-D.mercado.brent)*p.fx/L;
+      const intk = int0 + (c.deriva||0)*Math.min(k,c.derivaSemanas??10) + (c.futPeso||0)*(p.brent-(D.refBanda?.brent ?? D.mercado.brent))*p.fx/L;
       const IEB = c.iebUTM*(k===0?D.utm:p.utm)/1000;
       r.par.push(par); r.sup.push(intk*1.05); r.inf.push(intk*0.95);
       r.base.push((par+c.premio)*1.19+IEB);
@@ -853,7 +853,7 @@ function renderMkt(){
   add('Dólar observado ($)',m.fx!=null?nf2.format(m.fx):null,'Banco Central');
   add('UTM del mes ($)',nf0.format(D.utm),'SII');
   (D.semanas||[]).forEach(w=>add('Semana del '+ddmm(w.lunes)+(w.parcial?' (en curso)':''),'Brent '+nf2.format(w.brent)+' · dólar '+nf2.format(w.fx),'Promedio semanal'));
-  $('#t-mkt').innerHTML=`<thead><tr><th>Indicador</th><th>Valor</th><th>Para qué sirve</th></tr></thead><tbody>${rows.join('')}</tbody>`+`<tfoot><tr><td colspan="3" class="muted small" style="font-weight:400">Cierre del ${m.fecha?ddmmyy(m.fecha):'—'}. Se actualizan cada jueves.</td></tr></tfoot>`;
+  $('#t-mkt').innerHTML=`<thead><tr><th>Indicador</th><th>Valor</th><th>Para qué sirve</th></tr></thead><tbody>${rows.join('')}</tbody>`+`<tfoot><tr><td colspan="3" class="muted small" style="font-weight:400">Cierre del ${m.fecha?ddmmyy(m.fecha):'—'}. Brent y dólar se actualizan cada día hábil; los precios oficiales, cada jueves.</td></tr></tfoot>`;
 }
 const GLOSS=[
   ['Brent','Tipo de petróleo del Mar del Norte. Es la referencia mundial de precio y la que usa Chile para el MEPCO. Se cotiza en dólares por barril (159 litros).'],
@@ -872,8 +872,9 @@ const GLOSS=[
 ];
 
 function renderStatic(){
+  const mk=D.mercado||{};
   const next=(D.proximasFijaciones||[]).find(d=>d>D.vigencia), upd=D.actualizado?new Date(D.actualizado):null;
-  $('#meta').innerHTML=`<span>Precios vigentes desde el ${ddmmyy(D.vigencia)}</span>${next?`<span>Próxima fijación: ${ddmmyy(next)}</span>`:''}${upd?`<span>Datos actualizados el ${upd.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'})}; se renuevan cada jueves</span>`:''}`;
+  $('#meta').innerHTML=`<span>Precios vigentes desde el ${ddmmyy(D.vigencia)}</span>${next?`<span>Próxima fijación: ${ddmmyy(next)}</span>`:''}${mk.fecha?`<span>Brent y dólar al ${ddmmyy(mk.fecha)}; se actualizan cada día hábil</span>`:''}`;
   $('#gloss').innerHTML=GLOSS.map(([t,d])=>`<dt>${t}</dt><dd>${d}</dd>`).join('');
   $('#caveats').innerHTML=(D.supuestos||[]).map(s=>`<li>${esc(s)}</li>`).join('');
   $('#sources').textContent='Fuentes: '+(D.fuentes||[]).join(' · ');

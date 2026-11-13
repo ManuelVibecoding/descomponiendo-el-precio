@@ -12,6 +12,10 @@ fecha(A.vigencia, 'vigencia'); num(A.utm, 'utm');
 if (!Array.isArray(A.semanas) || A.semanas.length < 4) errores.push('semanas necesita al menos 4 semanas');
 (A.semanas || []).forEach((w, i) => { fecha(w.lunes, `semanas[${i}].lunes`); num(w.brent, `semanas[${i}].brent`); num(w.fx, `semanas[${i}].fx`); });
 num(A.mercado?.brent, 'mercado.brent'); num(A.mercado?.fx, 'mercado.fx');
+fecha(A.mercado?.fecha, 'mercado.fecha');
+if (A.refBanda) num(A.refBanda.brent, 'refBanda.brent'); else avisos.push('falta refBanda (Brent del último informe CNE)');
+{ const dias = (Date.now() - Date.parse((A.mercado?.fecha || '2000-01-01') + 'T00:00:00Z')) / 864e5;
+  if (dias > 6) avisos.push(`el cierre de mercado tiene ${Math.floor(dias)} días; revisar la actualización diaria`); }
 
 // la ventana de paridad (4 lunes antes de la vigencia) debe estar completa
 const add = (s, d) => { const x = new Date(s + 'T00:00:00Z'); x.setUTCDate(x.getUTCDate() + d); return x.toISOString().slice(0, 10); };
