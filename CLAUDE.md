@@ -1,4 +1,4 @@
-# Barril a Bomba: instrucciones para Claude
+# Descomponiendo el precio del combustible (repositorio barril-a-bomba): instrucciones para Claude
 
 Proyecto de Manuel Amenábar. Página estática que explica y proyecta el precio de las bencinas y el diésel en Chile. Se publica con GitHub Pages desde la rama `main`, carpeta raíz.
 

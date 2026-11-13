@@ -17,4 +17,4 @@ createServer(async (req, res) => {
     const datos = await readFile(archivo);
     res.writeHead(200, { 'Content-Type': tipos[extname(archivo)] || 'application/octet-stream', 'Cache-Control': 'no-cache' }).end(datos);
   } catch { res.writeHead(404).end('No encontrado'); }
-}).listen(puerto, () => console.log(`Barril a Bomba en http://localhost:${puerto}`));
+}).listen(puerto, () => console.log(`Descomponiendo el precio del combustible en http://localhost:${puerto}`));

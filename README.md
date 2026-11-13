@@ -1,4 +1,6 @@
-# Barril a Bomba
+# Descomponiendo el precio del combustible
+
+El repositorio y el link conservan su nombre original, barril-a-bomba.
 
 Cómo se forma el precio de la bencina y el diésel en Chile, desde el barril de petróleo hasta la estación, y qué viene en las próximas fijaciones.
 
