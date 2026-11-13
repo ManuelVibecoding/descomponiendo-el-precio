@@ -117,6 +117,9 @@ html.og .trad,html.og .pie,html.og .loc{display:none}
 .loc select{font:inherit;font-weight:600;color:var(--navy);background:transparent;border:0;border-bottom:2px solid var(--s-sta);border-radius:0;padding:0 2px 1px;cursor:pointer;max-width:100%}
 .loc select:hover{background:var(--soft)}
 .loc .lo{font-size:.95rem}
+.nac{font-size:1.02rem;color:var(--muted);margin-top:-4px}
+.nac b{font-family:var(--f-head);font-weight:700;font-size:1.55rem;color:var(--navy);font-variant-numeric:tabular-nums;margin-right:4px}
+html.og .nac{display:none}
 .loc .lo b{white-space:nowrap}
 .loc .ln{display:block;font-size:.84rem;color:var(--muted);margin-top:3px}
 /* pie de página */
@@ -297,6 +300,7 @@ html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important
       <p class="lead rise" style="--d:.16s">Del barril de petróleo a tu estanque: cómo se forma el precio de la bencina y el diésel en Chile, y qué viene en las próximas semanas.</p>
       <p class="q rise" style="--d:.28s" id="h-q">¿Cuánto cuesta hoy un litro?</p>
       <div class="price rise" style="--d:.34s"><span class="big" id="p-now">$—</span><span class="unit" id="p-unit"></span></div>
+      <p class="nac rise" style="--d:.36s" id="p-nac" hidden></p>
       <div class="loc rise" style="--d:.38s" id="loc" hidden>
         <p class="lq">¿Y donde cargas tú? <select id="loc-reg" aria-label="Región"></select> <select id="loc-com" aria-label="Comuna"></select></p>
         <p class="lo" id="loc-out" aria-live="polite"></p>
@@ -746,6 +750,9 @@ function locComunas(sel){
 }
 function renderLoc(){
   if(!LOC || $('#loc').hidden) return;
+  const N = LOC.nacional?.[fuel];
+  $('#p-nac').hidden = !N;
+  if(N) $('#p-nac').innerHTML = `<b>${money(N[0])}</b> promedio nacional (${nf0.format(N[1])} estaciones)`;
   const reg=$('#loc-reg').value, com=$('#loc-com').value, R=LOC.regiones[reg];
   try{ localStorage.setItem('bab-loc', JSON.stringify({reg, com})); }catch(e){}
   const dato = (com ? R.comunas[com] : R.total)?.[fuel], nac = LOC.nacional?.[fuel], fl = NAME[fuel].toLowerCase();
@@ -760,7 +767,6 @@ function renderLoc(){
     else if(ref) t += Math.abs(d)<1 ? ', igual que el promedio de la Región Metropolitana que usa esta página.' : `, ${money(Math.abs(d))} ${d>0?'más':'menos'} que el promedio de la Región Metropolitana que usa esta página.`;
     else t += '.';
   }
-  if(nac) t += ` Promedio nacional: ${money(nac[0])}.`;
   t += `<span class="ln">Precios informados por cada estación a Bencina en Línea (CNE), al ${ddmmyy(LOC.fecha)}. La diferencia entre lugares está casi toda en el margen de la estación y, en regiones, en el costo de llevar el combustible.</span>`;
   $('#loc-out').innerHTML = t;
 }
