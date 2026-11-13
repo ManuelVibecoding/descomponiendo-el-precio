@@ -202,6 +202,7 @@ html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important
 const L = 158.987; // litros por barril
 const FUELS = ['g93','g95','g97','diesel'];
 const NAME = {g93:'Bencina 93',g95:'Bencina 95',g97:'Bencina 97',diesel:'Diésel'};
+const art = () => fuel==='diesel'?'el':'la'; // artículo: el diésel, la bencina
 const SHORT = {g93:'93',g95:'95',g97:'97',diesel:'Diésel'};
 const nf0 = new Intl.NumberFormat('es-CL',{maximumFractionDigits:0});
 const nf1 = new Intl.NumberFormat('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1});
@@ -602,7 +603,7 @@ function render(){
   const nx = SIM.pump(fuel,3,false)-now.total;
   $('#s3-text').innerHTML = Math.abs(gap)<3
     ? `Con estos valores el precio de hoy ya refleja el costo. No debería moverse mucho.`
-    : `Si el Brent y el dólar se quedaran en estos valores, la ${fl} ${gap>0?'debería subir':'debería bajar'} <b>${money(Math.abs(gap))}</b> por litro. Ese cambio no llega de golpe: el MEPCO lo reparte en tramos cada tres semanas. En la próxima fijación (${longDate(SIM.T[3])}) ${Math.abs(nx)<0.5?'no cambiaría':(nx>0?'subiría':'bajaría')+' unos <b>'+money(Math.abs(nx))+'</b>'}.`;
+    : `Si el Brent y el dólar se quedaran en estos valores, ${art()} ${fl} ${gap>0?'debería subir':'debería bajar'} <b>${money(Math.abs(gap))}</b> por litro. Ese cambio no llega de golpe: el MEPCO lo reparte en tramos cada tres semanas. En la próxima fijación (${longDate(SIM.T[3])}) ${Math.abs(nx)<0.5?'no cambiaría':(nx>0?'subiría':'bajaría')+' unos <b>'+money(Math.abs(nx))+'</b>'}.`;
   const m=D.mercado||{};
   $('#mkt').textContent=`Valores de partida (cierre del ${m.fecha?ddmmyy(m.fecha):'—'}): Brent US$${nf2.format(m.brent)} · WTI US$${nf2.format(m.wti)} · dólar $${nf2.format(m.fx)}.`;
 
@@ -643,11 +644,11 @@ function renderFuture(){
   const fix=T.map((t,i)=>i).filter(i=>i>0&&i%3===0);
   const k1=fix[0], d1=pump[k1]-pump[0];
   const fl=NAME[fuel].toLowerCase();
-  $('#s4-text').innerHTML=`ENAP cambia sus precios cada tres semanas. La próxima fijación es el <b>${longDate(T[k1])}</b>. Con los valores del punto 3, la ${fl} <b>${move(d1)}</b> ${Math.abs(d1)<0.5?'':`(de ${money(pump[0])} a ${money(pump[k1])})`}.`;
+  $('#s4-text').innerHTML=`ENAP cambia sus precios cada tres semanas. La próxima fijación es el <b>${longDate(T[k1])}</b>. Con los valores del punto 3, ${art()} ${fl} <b>${move(d1)}</b> ${Math.abs(d1)<0.5?'':`(de ${money(pump[0])} a ${money(pump[k1])})`}.`;
   const fr=D.congelamiento||{};
   if(fr.estado){
     const kF=T.findIndex(t=>t>=fr.desde), rb=fuel==='g95'?((fr.rebaja.g93+fr.rebaja.g97)/2):(fr.rebaja||{})[fuel]||0;
-    $('#s4-freeze').innerHTML=`<b>Congelamiento propuesto</b> (${esc(fr.estado)}): el Gobierno acordó revertir el alza del 12 de noviembre y no permitir nuevas alzas hasta el ${ddmmyy(fr.hasta)}. Para la ${fl} significa ${rb? 'bajar '+money(rb)+' por litro desde el '+(kF>0?longDate(T[kF]):'—'):'mantener el precio'}, y después solo mantenerse o bajar. La línea roja del gráfico muestra ese escenario.`;
+    $('#s4-freeze').innerHTML=`<b>Congelamiento propuesto</b> (${esc(fr.estado)}): el Gobierno acordó revertir el alza del 12 de noviembre y no permitir nuevas alzas hasta el ${ddmmyy(fr.hasta)}. Para ${art()} ${fl} significa ${rb? 'bajar '+money(rb)+' por litro desde el '+(kF>0?longDate(T[kF]):'—'):'mantener el precio'}, y después solo mantenerse o bajar. La línea roja del gráfico muestra ese escenario.`;
   } else $('#s4-freeze').textContent='';
   const geo = lineChart($('#chart'),[{v:pump,col:'--navy',w:2.6,name:'Reglas actuales'},{v:pumpF,col:'--accent',w:2.2,dash:'6 4',name:'Con congelamiento'}],T,fix);
   const svg=$('#chart svg'), guide=svg.querySelector('#guide');
@@ -708,7 +709,7 @@ function renderHist(){
   let lm=''; rows.forEach((r,i)=>{const mo=+r.f.slice(5,7); if(mo!==+lm){lm=mo; g+=`<text x="${ml+i*bw}" y="${Hh-10}">${MESES[mo-1].slice(0,3)}</text>`;}});
   el.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Ajuste semanal del impuesto específico en 2026">${g}</svg>`;
   const mi=vals.indexOf(Math.min(...vals));
-  $('#histText').innerHTML=`Las barras azules son semanas en que el Estado cobró menos impuesto para frenar alzas; las rojas, semanas en que cobró más para frenar bajas. Para la ${NAME[fuel].toLowerCase()}, la mayor rebaja fue de <b>${money(-vals[mi])}</b> por litro, el ${ddmmyy(rows[mi].f)}. Esta semana es de ${vals[n-1]<0?'−':'+'}${money(Math.abs(vals[n-1]))}.`;
+  $('#histText').innerHTML=`Las barras azules son semanas en que el Estado cobró menos impuesto para frenar alzas; las rojas, semanas en que cobró más para frenar bajas. Para ${art()} ${NAME[fuel].toLowerCase()}, la mayor rebaja fue de <b>${money(-vals[mi])}</b> por litro, el ${ddmmyy(rows[mi].f)}. Esta semana es de ${vals[n-1]<0?'−':'+'}${money(Math.abs(vals[n-1]))}.`;
   $('#cap4').innerHTML=`<b>Gráfico 4.</b> Componente variable del impuesto específico, ${NAME[fuel].toLowerCase()}, en pesos por litro. Fuente: SII.`;
 }
 
