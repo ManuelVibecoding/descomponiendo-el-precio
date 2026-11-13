@@ -8,7 +8,7 @@
 <meta property="og:description" content="Cómo se forma el precio de la bencina en Chile, paso a paso, con simulador y proyección semanal.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://manuelvibecoding.github.io/barril-a-bomba/">
-<meta property="og:image" content="https://manuelvibecoding.github.io/barril-a-bomba/og.png">
+<meta property="og:image" content="https://manuelvibecoding.github.io/barril-a-bomba/og.png?v=2">
 <meta property="og:locale" content="es_CL">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1C355E">
@@ -89,6 +89,16 @@ b,strong{font-weight:600}
 .keys .v{font-family:var(--f-head);font-weight:700;font-size:1.65rem;line-height:1.15;font-variant-numeric:tabular-nums;color:var(--navy)}
 .keys .v.up{color:var(--up)}
 .keys .s{font-size:.82rem;color:var(--muted)}
+/* modo vista previa (?og): genera og.png de 1200x630; sin cifras para que la imagen no quede desactualizada */
+.ogtag{display:none}
+html.og body{padding:0}
+html.og .rise{animation:none}
+html.og .topnav,html.og .meta,html.og .q,html.og .price,html.og .s1,html.og .hfig figcaption,html.og .keys,html.og .cue,html.og .page{display:none}
+html.og .hero{margin:0;height:630px;border:0;border-top:10px solid var(--navy)}
+html.og .hero .in{max-width:none;height:620px;padding:0 60px 0 72px;grid-template-columns:1fr 1fr;gap:0 40px}
+html.og .hero h1{font-size:76px}
+html.og .hero .lead{font-size:25px;line-height:1.4;color:var(--muted)}
+html.og .ogtag{display:block;font-size:22px;font-weight:700;color:var(--navy);margin-top:14px}
 .cue{grid-column:1 / -1;justify-self:center;margin-top:6px;color:var(--muted);font-size:.84rem;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:2px}
 .cue svg{width:18px;height:18px;animation:bob 2.2s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(4px)}}
@@ -264,6 +274,7 @@ html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important
       <p class="q rise" style="--d:.28s" id="h-q">¿Cuánto cuesta hoy un litro?</p>
       <div class="price rise" style="--d:.34s"><span class="big" id="p-now">$—</span><span class="unit" id="p-unit"></span></div>
       <p class="s1 rise" style="--d:.42s" id="s1-text"></p>
+      <p class="ogtag">Simulador y proyección semanal del MEPCO</p>
     </div>
     <figure class="hfig">
       <div class="barrel" id="barrel1" role="img"></div>
@@ -281,6 +292,8 @@ html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important
 (function(){
 const L = 158.987; // litros por barril
 const FUELS = ['g93','g95','g97','diesel'];
+const OG = /[?&]og(&|=|$)/.test(location.search); // modo para capturar og.png
+if(OG){ document.documentElement.classList.add('og'); document.documentElement.setAttribute('data-theme','light'); }
 const NAME = {g93:'Bencina 93',g95:'Bencina 95',g97:'Bencina 97',diesel:'Diésel'};
 const art = () => fuel==='diesel'?'el':'la'; // artículo: el diésel, la bencina
 const SHORT = {g93:'93',g95:'95',g97:'97',diesel:'Diésel'};
@@ -593,7 +606,7 @@ function barrelSVG(el, o, opt={}){
   g+=`<ellipse cx="${cx+bw*0.22}" cy="${yT}" rx="${bw*0.06}" ry="${ry*0.28}" style="fill:var(--steel-dk)" stroke="#000" stroke-opacity=".3"/>`;
   // total sobre la tapa
   const tot = upto>=4 ? o.total : bands.reduce((a,b)=>a+b.v,0);
-  g+=`<text${anim?' class="lbl" style="--i:5"':''} x="${cx}" y="${yT-ry-10}" text-anchor="middle" style="font-size:${labels?17:16}px;font-weight:700;fill:var(--ink)">${opt.topLabel?opt.topLabel+' ':''}${money(tot)}</text>`;
+  g+=`<text${anim?' class="lbl" style="--i:5"':''} x="${cx}" y="${yT-ry-10}" text-anchor="middle" style="font-size:${labels?17:16}px;font-weight:700;fill:var(--ink)">${opt.namesOnly?'':(opt.topLabel?opt.topLabel+' ':'')+money(tot)}</text>`;
   // etiquetas con línea guía
   if(labels){
     const lx=bx+bw+B+34, items=bands.map(b=>({y:(b.top+b.bot)/2,ey:(b.top+b.bot)/2,t:b.name,v:'$'+nf0.format(b.v)+(upto>=4?' · '+nf0.format(b.v/o.total*100)+'%':''),c:cols[b.i]}));
@@ -606,7 +619,8 @@ function barrelSVG(el, o, opt={}){
       g+=anim?`<g class="lbl" style="--i:${j}">`:only!=null&&j===items.length-1&&only<4?'<g class="lbl" style="--i:0">':'<g>';
       g+=`<circle cx="${ex}" cy="${it.ey}" r="3" style="fill:var(--ink)"/><path d="M${ex},${it.ey} L${lx-18},${it.ey} L${lx-6},${it.y}" fill="none" style="stroke:var(--muted)" stroke-width="1"/>`;
       g+= it.c ? `<rect x="${lx}" y="${it.y-14}" width="10" height="10" style="fill:var(${it.c})"/>` : `<rect x="${lx}" y="${it.y-14}" width="10" height="10" fill="url(#${id}h)" style="stroke:var(--ink)" stroke-width=".8"/>`;
-      g+=`<text x="${lx+16}" y="${it.y-5}" style="font-size:13px;fill:var(--muted)">${it.t}</text><text x="${lx+16}" y="${it.y+13}" style="font-size:16px;font-weight:700;fill:var(--ink)">${it.v}</text></g>`;
+      g+= opt.namesOnly ? `<text x="${lx+16}" y="${it.y-3}" style="font-size:16px;font-weight:600;fill:var(--ink)">${it.t}</text></g>`
+        : `<text x="${lx+16}" y="${it.y-5}" style="font-size:13px;fill:var(--muted)">${it.t}</text><text x="${lx+16}" y="${it.y+13}" style="font-size:16px;font-weight:700;fill:var(--ink)">${it.v}</text></g>`;
     });
   }
   el.innerHTML=`<svg${anim||only!=null?' class="anim"':''} viewBox="0 0 ${Wd} ${H}" width="${Wd}" height="${H}" style="max-width:100%;height:auto">${g}</svg>`;
@@ -615,7 +629,7 @@ function barrelSVG(el, o, opt={}){
 let SIM=null, SIM0=null, LAST=null, animNext=true;
 function drawBarrels(){
   if(!LAST) return; const {now,full}=LAST;
-  barrelSVG($('#barrel1'), now, {anim:animNext}); animNext=false;
+  barrelSVG($('#barrel1'), now, OG?{namesOnly:true,H:430}:{anim:animNext}); animNext=false;
   barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<4?'Va en':''});
   const mx=Math.max(posSum(now),posSum(full))*1.04;
   barrelSVG($('#barrel3a'), now, {labels:false, max:mx, H:290});

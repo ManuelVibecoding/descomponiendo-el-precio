@@ -21,6 +21,7 @@ Proyecto de Manuel Amenábar. Página estática que explica y proyecta el precio
 - Página: https://manuelvibecoding.github.io/barril-a-bomba/ (GitHub Pages desde `main`, carpeta raíz).
 - Carpeta local: `C:\Users\mjame\Desktop\Proyectos\barril-a-bomba`. El repositorio usa GitHub CLI (`C:\Program Files\GitHub CLI\gh.exe`) como credencial de git, configurado solo en este repo.
 - Las etiquetas `og:url` y `og:image` de `index.html` apuntan a la URL de Pages; si la URL cambia, actualizarlas.
+- `og.png` (vista previa al compartir, 1200x630) se genera desde la propia página en modo `?og`, sin cifras: con `node scripts/servir.mjs` corriendo, `msedge --headless=new --hide-scrollbars --window-size=1200,630 --screenshot=og.png "http://localhost:8000/?og"`. Si cambia, subir el `?v=` de `og:image` para que WhatsApp y LinkedIn la refresquen.
 - Tarea programada en la app de Claude: "Barril a Bomba semanal (GitHub)", jueves 18:39 hora de Santiago.
 
 ## Actualización semanal (jueves en la tarde, hora de Santiago)
