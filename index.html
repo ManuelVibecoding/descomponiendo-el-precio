@@ -100,6 +100,17 @@ html.og .hero .in{max-width:none;height:620px;padding:0 60px 0 72px;grid-templat
 html.og .hero h1{font-size:62px;line-height:1.05}
 html.og .hero .lead{font-size:25px;line-height:1.4;color:var(--muted)}
 html.og .ogtag{display:block;font-size:22px;font-weight:700;color:var(--navy);margin-top:14px}
+/* traductor de noticias: qué significa para el litro una noticia del petróleo o del dólar */
+.trad{grid-column:1 / -1;border-top:2px solid var(--navy);margin-top:14px;padding-top:14px;display:flex;flex-direction:column;gap:8px}
+.trad .tk{font-size:.84rem;color:var(--s-ref);font-weight:700}
+.trad .tq{font-family:var(--f-head);font-weight:600;font-size:clamp(1.15rem,2.4vw,1.45rem);line-height:1.35}
+.trad select{font:inherit;color:var(--navy);background:transparent;border:0;border-bottom:2px solid var(--s-ref);border-radius:0;padding:0 2px 1px;cursor:pointer;max-width:100%}
+.trad select:hover{background:var(--soft)}
+.trad .ta{font-size:1.04rem;max-width:48em}
+.trad .ta b{white-space:nowrap}
+.trad .ta .n1{font-family:var(--f-head);font-weight:700;font-size:1.35rem;color:var(--navy)}
+.trad .tn{font-size:.84rem;color:var(--muted);max-width:48em}
+html.og .trad{display:none}
 .cue{grid-column:1 / -1;justify-self:center;margin-top:6px;color:var(--muted);font-size:.84rem;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:2px}
 .cue svg{width:18px;height:18px;animation:bob 2.2s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(4px)}}
@@ -281,6 +292,14 @@ html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important
       <div class="barrel" id="barrel1" role="img"></div>
       <figcaption id="cap1"></figcaption>
     </figure>
+    <div class="trad" id="trad">
+      <p class="tk">Traductor de noticias</p>
+      <p class="tq">Si <select id="tr-var" aria-label="Indicador"><option value="brent">el petróleo Brent</option><option value="fx">el dólar</option></select>
+        <select id="tr-dir" aria-label="Dirección"><option value="1">sube</option><option value="-1">baja</option></select>
+        <select id="tr-amt" aria-label="Monto"></select>,</p>
+      <p class="ta" id="tr-out" aria-live="polite"></p>
+      <p class="tn" id="tr-note"></p>
+    </div>
     <div class="keys" id="keys"></div>
     <a class="cue" href="#s2">Ver de dónde sale cada parte<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 7l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   </div>
@@ -415,6 +434,9 @@ const SEG = [['petroleo','Petróleo crudo','--s-oil'],['refinar','Refinarlo y tr
 const NSEG = SEG.length;
 
 function build(){
+  trOptions();
+  $('#tr-var').addEventListener('change',()=>{ trOptions(); renderTrad(); });
+  ['tr-dir','tr-amt'].forEach(id=>$('#'+id).addEventListener('change',renderTrad));
   $('#tabs').innerHTML = FUELS.map(f=>`<button type="button" data-fuel="${f}" aria-pressed="${f===fuel}" aria-label="${NAME[f]}">${f==='diesel'?'Diésel':`<span class="lg">Bencina </span>${SHORT[f]}`}</button>`).join('');
   $('#app').innerHTML = `
   <section class="step" id="s2">
@@ -633,7 +655,7 @@ function barrelSVG(el, o, opt={}){
   el.innerHTML=`<svg${anim||only!=null?' class="anim"':''} viewBox="0 0 ${Wd} ${H}" width="${Wd}" height="${H}" style="max-width:100%;height:auto">${g}</svg>`;
 }
 
-let SIM=null, SIM0=null, LAST=null, animNext=true;
+let SIM=null, SIM0=null, P0=null, LAST=null, animNext=true;
 function drawBarrels(){
   if(!LAST) return; const {now,full}=LAST;
   barrelSVG($('#barrel1'), now, OG?{namesOnly:true,H:430}:{anim:animNext}); animNext=false;
@@ -654,7 +676,35 @@ function countTo(el, to){
   el._r=requestAnimationFrame(tick);
 }
 // cifras clave de la portada: siempre con los valores de hoy, no con los del simulador
+// Traductor: efecto en el litro de una variación del Brent o del dólar, siempre desde los valores de hoy
+const TR_AMT = {brent:[[5,'US$5 por barril'],[10,'US$10 por barril'],[20,'US$20 por barril']], fx:[[20,'$20'],[50,'$50'],[100,'$100']]};
+function trOptions(){
+  const v=$('#tr-var').value, sel=$('#tr-amt'), prev=+sel.value;
+  sel.innerHTML=TR_AMT[v].map(([a,t])=>`<option value="${a}">${t}</option>`).join('');
+  sel.value = TR_AMT[v].some(([a])=>a===prev) ? prev : TR_AMT[v][1][0];
+}
+function renderTrad(){
+  const v=$('#tr-var').value, s=+$('#tr-dir').value, a=+$('#tr-amt').value, p={...P0};
+  if(v==='brent') p.brent+=s*a; else p.fx+=s*a;
+  const fl=NAME[fuel].toLowerCase(), full=parts(fuel,'pleno',p).total-parts(fuel,'pleno',P0).total;
+  const p0=SIM0.pump(fuel,0,false), d0=SIM0.pump(fuel,3,false)-p0, d1=simulate(p).pump(fuel,3,false)-p0, nx=d1-d0, fecha=longDate(SIM0.T[3]);
+  const verbo = d => d>0?'subir':'bajar';
+  // variación de la próxima fijación en infinitivo: "subir $39", "bajar $36", "no cambiar"
+  const inf = d => Math.abs(d)<0.5 ? 'no cambiar' : (d>0?'subir ':'bajar ')+money(Math.abs(d));
+  const del = (art()==='el'?'del ':'de la ')+fl;
+  let txt = `${art()==='el'?'El':'La'} ${fl} debería ${verbo(full)} <b class="n1">${money(Math.abs(full))}</b> por litro si el cambio se traspasa completo.`;
+  txt += Math.abs(nx)<0.5
+    ? ` Pero en la próxima fijación (${fecha}) no cambiaría por esto: ya está previsto <b>${inf(d0)}</b>, que es el tope de variación que permite el MEPCO, así que el efecto se reparte en las fijaciones siguientes.`
+    : Math.abs(nx) >= Math.abs(full)-0.5
+      ? ` Llegaría completo en la próxima fijación (${fecha}): pasaría de <b>${inf(d0)}</b> a <b>${inf(d1)}</b>.`
+      : ` Pero no llega de golpe: en la próxima fijación (${fecha}) el precio ${del} pasaría de <b>${inf(d0)}</b> a <b>${inf(d1)}</b>, y el resto se reparte en las fijaciones siguientes.`;
+  const out=$('#tr-out'); out.innerHTML=txt;
+  try{ if(!calm()) out.animate([{opacity:.25},{opacity:1}],{duration:350,easing:'ease-out'}); }catch(e){}
+  const fr=D.congelamiento||{};
+  $('#tr-note').textContent = 'Con las reglas actuales del MEPCO y el resto de los valores de hoy.' + (fr.estado&&fr.hasta ? ` Si se aprueba el congelamiento, el precio solo podría mantenerse o bajar hasta el ${ddmmyy(fr.hasta)}.` : '');
+}
 function renderHero(){
+  renderTrad();
   const now=parts(fuel,'hoy'), T=SIM0.T, p0=SIM0.pump(fuel,0,false), p1=SIM0.pump(fuel,3,false), d=p1-p0, aj=now.ajuste, m=D.mercado||{};
   const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
   $('#keys').innerHTML=[
@@ -900,7 +950,7 @@ render = function(){ _render(); renderHist(); };
 
 // ================= datos =================
 let started=false;
-function start(){ $('#loading')?.remove(); build(); prepare(); resetParams(); SIM0=simulate({...P}); syncInputs(); renderAll(); renderHero();
+function start(){ $('#loading')?.remove(); build(); prepare(); resetParams(); P0={...P}; SIM0=simulate(P0); syncInputs(); renderAll(); renderHero();
   // las secciones aparecen al bajar; el Gráfico 3 se revela la primera vez que entra en pantalla
   if('IntersectionObserver' in window && !calm()){
     document.documentElement.classList.add('js-reveal');
