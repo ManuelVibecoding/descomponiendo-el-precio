@@ -147,9 +147,9 @@
   },
   "supuestos": [
     "Precios en bomba = promedio de la Región Metropolitana según Bencina en Línea (CNE), con las estaciones que informaron su precio desde el 12-11-2026 (386 en la 93). El margen de distribución y estación es ese promedio menos el precio mayorista estimado. Cada estación cobra distinto: en la RM, 9 de cada 10 estaciones venden la 93 entre $1.526 y $1.633.",
-    "La paridad usa precios Argus que no son públicos. El modelo la reemplaza por Brent (futuros ICE) más un diferencial que se recalibra con cada decreto de la CNE.",
-    "La banda de referencia se proyecta con la deriva semanal de la CNE y el peso de los futuros del Brent. Hacienda puede cambiar los parámetros n, m, s y alfa, como hizo varias veces en 2026.",
-    "Desde el 30-07-2026 Hacienda aplicó el MEPCO con criterio discrecional. La proyección sigue la regla de la ley (umbral 2,4% y banda ±5%).",
+    "La paridad usa precios Argus que no son públicos. El modelo la reemplaza por el Brent (futuros) más un diferencial que se recalibra con cada informe de la CNE. Por eso la división entre \"petróleo crudo\" y \"refinarlo y traerlo\" es una estimación; la suma de ambas sí corresponde al costo de importar oficial.",
+    "La banda de referencia se proyecta con la deriva semanal que informa la CNE y el peso de los futuros del Brent. Hacienda fija por decreto los parámetros del precio de referencia (semanas de historia y de futuros, y su ponderación) y puede cambiarlos.",
+    "Según el OCEC-UDP, desde el 30-07-2026 el Ejecutivo interpretó la norma del MEPCO de modo que en algunas fijaciones no se aplicaron el umbral de variación ni la banda. La proyección de esta página sigue la regla de la ley (umbral de 2,4% y banda de ±5%), así que puede desviarse si eso se repite.",
     "Los márgenes de las estaciones varían por comuna y por semana; el simulador permite moverlos."
   ],
   "fuentes": [

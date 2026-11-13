@@ -110,7 +110,11 @@ html.og .ogtag{display:block;font-size:22px;font-weight:700;color:var(--navy);ma
 .trad .ta b{white-space:nowrap}
 .trad .ta .n1{font-family:var(--f-head);font-weight:700;font-size:1.35rem;color:var(--navy)}
 .trad .tn{font-size:.84rem;color:var(--muted);max-width:48em}
-html.og .trad{display:none}
+html.og .trad,html.og .pie{display:none}
+/* pie de página */
+.pie{max-width:960px;margin:56px auto 0;border-top:2px solid var(--navy);padding-top:18px;display:flex;flex-direction:column;gap:8px;font-size:.9rem;color:var(--muted)}
+.pie b{color:var(--ink);font-family:var(--f-head);font-weight:600}
+.pie a{color:var(--navy);text-underline-offset:3px}
 .cue{grid-column:1 / -1;justify-self:center;margin-top:6px;color:var(--muted);font-size:.84rem;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:2px}
 .cue svg{width:18px;height:18px;animation:bob 2.2s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(4px)}}
@@ -307,6 +311,10 @@ html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important
 <div class="page">
   <div id="app"><p class="loading" id="loading">Cargando los datos oficiales de esta semana…</p></div>
 </div>
+<footer class="pie">
+  <p><b>Descomponiendo el precio del combustible</b>, por Manuel Amenábar. Es un modelo de estimación con datos públicos de la CNE (incluida Bencina en Línea), el SII y ENAP; no es una cifra oficial. Cada estación cobra distinto, y el Estado puede cambiar los parámetros del MEPCO.</p>
+  <p>Brent, dólar y precios en estación se actualizan cada día hábil; los datos oficiales del MEPCO, cada jueves. <a href="https://github.com/ManuelVibecoding/descomponiendo-el-precio">Código y datos en GitHub</a>.</p>
+</footer>
 
 <script>
 (function(){
@@ -518,7 +526,7 @@ function build(){
       <details><summary>Desglose técnico completo</summary>
         <div class="inner"><div class="scroll"><table id="t-tech"></table></div></div></details>
       <details><summary>Proyección detallada con banda de precios</summary>
-        <div class="inner"><p class="text small">La ley obliga a que el costo de importar más el ajuste del Estado quede dentro de una banda de ±5% alrededor de un precio de referencia que calcula la CNE con dos años de historia del Brent. El techo de esa banda es lo que hoy frena las alzas.</p><div class="scroll"><table id="t-proj"></table></div></div></details>
+        <div class="inner"><p class="text small">La ley obliga a que el costo de importar más el ajuste del Estado quede dentro de una banda de ±5% alrededor de un precio de referencia que calcula la CNE con el promedio del Brent de varias semanas anteriores, sus precios futuros y un diferencial de refinación; Hacienda fija esos parámetros por decreto. Cuando el costo de importar está sobre el techo de la banda, como hoy en la bencina 93, el ajuste del Estado lo compensa.</p><div class="scroll"><table id="t-proj"></table></div></div></details>
       <details><summary>Indicadores de mercado cargados</summary>
         <div class="inner"><div class="scroll"><table id="t-mkt"></table></div></div></details>
       <details><summary>Método, supuestos y fuentes</summary>
@@ -529,7 +537,7 @@ function build(){
             <li><b>Impuesto específico</b> = 6 UTM por m³ en bencinas y 1,5 UTM por m³ en diésel, más el componente variable del MEPCO.</li>
             <li><b>IVA</b> de 19% sobre todo salvo el impuesto específico (Ley 18.502, art. 6).</li>
             <li><b>Regla del MEPCO</b>: el mayorista cambia cada 3 semanas, como máximo 2,4% del precio sin ajuste, y la paridad más el ajuste debe quedar dentro de la banda.</li>
-            <li><b>Bencina 95</b>: mezcla 50/50 de 93 y 97, que es como la venden las distribuidoras.</li>
+            <li><b>Bencina 95</b>: no tiene componente propio en el MEPCO (el SII publica solo 93 y 97), así que el modelo usa el promedio de 93 y 97 para el costo y el impuesto; el precio en estación sí es el promedio real de la 95 en Bencina en Línea.</li>
           </ul>
           <ul class="plain" id="caveats"></ul>
           <p class="small muted" id="sources"></p>
@@ -742,9 +750,9 @@ function render(){
   const iebTxt = sN ? '1,5 UTM por metro cúbico' : '6 UTM por metro cúbico';
   const spread = fuel==='g95' ? (CAL.S.g93+CAL.S.g97)/2 : CAL.S[fuel];
   const steps = [
-    ['Petróleo crudo', now.petroleo, `Chile toma como referencia el Brent, el petróleo del Mar del Norte. Un barril tiene 159 litros. El precio vigente usa el promedio de las cuatro semanas anteriores, cuando el Brent promedió US$${nf1.format(CAL.bWin)}; hoy está en US$${nf1.format(D.mercado.brent)}.`, 'Por eso los precios en Chile reaccionan con unas semanas de atraso.'],
-    ['Refinarlo y traerlo a Chile', now.refinar, `Chile no compra crudo para fijar el precio: compra ${sN?'diésel ya refinado':'bencina ya refinada'} en la costa del Golfo de EE.UU., y paga el barco, el seguro y el ajuste de calidad. La CNE suma todo eso en el <b>costo de importar</b> (precio de paridad): ${money(parD)} por litro esta semana.`, `Hoy el ${sN?'diésel':'combustible'} puesto en Chile cuesta unos US$${nf0.format(spread)} por barril más que el crudo${sN?`, más del doble que la bencina 93 (US$${nf0.format(CAL.S.g93)}). Esa diferencia es la razón principal de que el diésel esté tan caro.`:` (en el diésel, US$${nf0.format(CAL.S.diesel)}).`}`],
-    ['Distribución y estación', now.estacion, `ENAP vende al por mayor a las distribuidoras, y la estación agrega su margen por transporte, operación y ganancia. En Santiago ese margen ronda los ${money((fuel==='g95'?D.combustibles.g95.margen:c.margen)||0)} por litro con IVA.`, 'Es la única parte que cambia entre una estación y otra.'],
+    ['Petróleo crudo', now.petroleo, `Es el valor del crudo que hay detrás de cada litro, medido con el Brent, el petróleo de referencia mundial (un barril tiene 159 litros). El precio vigente usa el promedio de las cuatro semanas anteriores (Decreto Exento 103 de Hacienda, marzo de 2026), cuando el Brent promedió US$${nf1.format(CAL.bWin)}; hoy está en US$${nf1.format(D.mercado.brent)}.`, 'Por eso los precios en Chile reaccionan con unas semanas de atraso.'],
+    ['Refinarlo y traerlo a Chile', now.refinar, `Para fijar el precio, Chile no mira el crudo sino ${sN?'el diésel ya refinado':'la bencina ya refinada'} en la costa del Golfo de EE.UU., y le suma el barco, el seguro, las mermas y el ajuste de calidad, como si se importara. La CNE llama a eso <b>costo de importar</b> (precio de paridad): ${money(parD)} por litro esta semana.`, `Hoy el ${sN?'diésel':'combustible'} puesto en Chile cuesta unos US$${nf0.format(spread)} por barril más que el crudo${sN?`, más del doble que la bencina 93 (US$${nf0.format(CAL.S.g93)}). Esa diferencia es la razón principal de que el diésel esté tan caro.`:` (en el diésel, US$${nf0.format(CAL.S.diesel)}).`}`],
+    ['Distribución y estación', now.estacion, `ENAP vende al por mayor a las distribuidoras, y la estación agrega su margen por transporte, operación y ganancia. En la Región Metropolitana ese margen promedia ${money((fuel==='g95'?D.combustibles.g95.margen:c.margen)||0)} por litro con IVA: es el precio promedio en las estaciones (Bencina en Línea) menos el precio mayorista. Esta franja lo muestra sin IVA (${money(now.estacion)}); su IVA va en la franja del IVA.`, 'Es la única parte que cambia entre una estación y otra.'],
     ['IVA (19%)', now.iva, `El IVA de 19% se cobra sobre el costo del combustible y el margen de la estación: ${money(now.iva)} por litro. No se cobra sobre el impuesto específico (Ley 18.502, art. 6).`, 'Por eso, cuando sube el petróleo, el IVA también sube.'],
     ['Impuesto específico', now.ieb, `Impuesto fijo por litro, propio de los combustibles: ${iebTxt}, que este mes equivale a ${money(now.ieb)} por litro (Ley 18.502).`, 'La UTM se reajusta cada mes con la inflación, así que este impuesto sube un poco cada mes.'],
     ['Ajuste del Estado (MEPCO)', now.ajuste, `Para que el precio no salte cada semana, el Estado sube o baja el impuesto específico (Ley 20.765). Así, el precio mayorista de ENAP solo cambia cada tres semanas y como máximo en torno a 2,4%. Esta semana el ajuste es de ${now.ajuste<0?'−':'+'}${money(Math.abs(now.ajuste))} por litro, así que el impuesto específico que se paga en la práctica es ${money(ien)}.${ien<0?' Como la rebaja es mayor que el impuesto fijo, el impuesto específico queda negativo: el Estado pone plata en cada litro.':''}`, 'Cuando el ajuste es negativo, el Estado deja de recaudar; cuando es positivo, recupera.']
@@ -816,7 +824,7 @@ function renderFuture(anim){
   const fr=D.congelamiento||{};
   if(fr.estado){
     const kF=T.findIndex(t=>t>=fr.desde), rb=fuel==='g95'?((fr.rebaja.g93+fr.rebaja.g97)/2):(fr.rebaja||{})[fuel]||0;
-    $('#s4-freeze').innerHTML=`<b>Congelamiento propuesto</b> (${esc(fr.estado)}): el Gobierno acordó revertir el alza del 12 de noviembre y no permitir nuevas alzas hasta el ${ddmmyy(fr.hasta)}. Para ${art()} ${fl} significa ${rb? 'bajar '+money(rb)+' por litro desde el '+(kF>0?longDate(T[kF]):'—'):'mantener el precio'}, y después solo mantenerse o bajar. La línea roja del gráfico muestra ese escenario.`;
+    $('#s4-freeze').innerHTML=`<b>Congelamiento propuesto</b> (${esc(fr.estado)}): el Gobierno acordó revertir el alza del 12 de noviembre y no permitir nuevas alzas hasta el ${ddmmyy(fr.hasta)}. Para ${art()} ${fl} significa ${rb? 'bajar '+money(rb)+' por litro desde el '+(kF>0?longDate(T[kF]):'—'):'mantener el precio'}, y después solo mantenerse o bajar. La línea punteada del gráfico muestra ese escenario.`;
   } else $('#s4-freeze').textContent='';
   const geo = lineChart($('#chart'),[{v:pump,col:'--navy',w:2.6,name:'Reglas actuales'},{v:pumpF,col:'--accent',w:2.2,dash:'6 4',name:'Con congelamiento'}],T,fix,anim);
   const svg=$('#chart svg'), guide=svg.querySelector('#guide');
@@ -847,7 +855,7 @@ function lineChart(el, series, T, marks, anim){
   const st = span<=150?20:span<=400?50:100; lo=Math.floor(lo/st)*st; hi=Math.ceil(hi/st)*st;
   const n=T.length, x=i=>ml+(W-ml-mr)*i/(n-1), y=v=>mt+(Hh-mt-mb)*(1-(v-lo)/(hi-lo));
   let g='';
-  for(let v=lo;v<=hi+0.1;v+=st) g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${ml-8}" y="${y(v)+4}" text-anchor="end">${nf0.format(v)}</text>`;
+  for(let v=lo;v<=hi+0.1;v+=st) g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${ml-8}" y="${y(v)+4}" text-anchor="end">${(v<0?'−':'')+nf0.format(Math.abs(v))}</text>`;
   g+=`<text x="${ml}" y="${mt-12}" text-anchor="start" style="font-size:11px">$ por litro</text>`;
   marks.forEach(i=>g+=`<line x1="${x(i)}" x2="${x(i)}" y1="${mt}" y2="${Hh-mb}" stroke="var(--muted)" stroke-dasharray="2 4" opacity=".6"/><text x="${x(i)}" y="${Hh-12}" text-anchor="middle">${ddmm(T[i])}</text>`);
   g+=`<text x="${x(0)}" y="${Hh-12}" text-anchor="start">hoy</text>`;
@@ -878,7 +886,7 @@ function renderHist(){
   let lo=Math.min(0,...vals),hi=Math.max(0,...vals); const st=hi-lo>400?100:50; lo=Math.floor(lo/st)*st; hi=Math.ceil(hi/st)*st;
   const n=vals.length,bw=(W-ml-mr)/n,y=v=>mt+(Hh-mt-mb)*(1-(v-lo)/(hi-lo));
   let g='';
-  for(let v=lo;v<=hi;v+=st) g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${ml-6}" y="${y(v)+4}" text-anchor="end">${nf0.format(v)}</text>`;
+  for(let v=lo;v<=hi;v+=st) g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${ml-6}" y="${y(v)+4}" text-anchor="end">${(v<0?'−':'')+nf0.format(Math.abs(v))}</text>`;
   vals.forEach((v,i)=>g+=`<rect x="${ml+i*bw+1}" width="${Math.max(1,bw-2)}" y="${Math.min(y(v),y(0))}" height="${Math.max(.5,Math.abs(y(v)-y(0)))}" fill="var(${v<0?'--s-oil':'--s-tax'})"><title>${ddmmyy(rows[i].f)}: ${v<0?'−':'+'}$${nf1.format(Math.abs(v))} por litro</title></rect>`);
   g+=`<line x1="${ml}" x2="${W-mr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)"/>`;
   let lm=''; rows.forEach((r,i)=>{const mo=+r.f.slice(5,7); if(mo!==+lm){lm=mo; g+=`<text x="${ml+i*bw}" y="${Hh-10}">${MESES[mo-1].slice(0,3)}</text>`;}});
@@ -900,7 +908,7 @@ function renderSens(){
 function renderTech(now,full){
   const r=[['Petróleo crudo','petroleo'],['Refinarlo y traerlo a Chile','refinar'],['Distribución y estación (sin IVA)','estacion'],['Impuesto específico base','ieb'],['IVA 19%','iva'],['Ajuste del Estado (componente variable)','ajuste']];
   $('#t-tech').innerHTML=`<thead><tr><th>${NAME[fuel]}, $ por litro</th><th>Hoy</th><th>Traspaso completo</th><th>Diferencia</th></tr></thead><tbody>`+
-    r.map(([n,k])=>{const d=full[k]-now[k];return `<tr><td>${n}</td><td>${nf1.format(now[k])}</td><td>${nf1.format(full[k])}</td><td class="${cls(d)}">${delta(d)}</td></tr>`;}).join('')+
+    r.map(([n,k])=>{const d=full[k]-now[k];return `<tr><td>${n}</td><td>${(now[k]<-0.05?'−':'')+nf1.format(Math.abs(now[k]))}</td><td>${(full[k]<-0.05?'−':'')+nf1.format(Math.abs(full[k]))}</td><td class="${cls(d)}">${delta(d)}</td></tr>`;}).join('')+
     `</tbody><tfoot><tr><td>Total</td><td>${nf0.format(now.total)}</td><td>${nf0.format(full.total)}</td><td>${delta(full.total-now.total)}</td></tr></tfoot>`;
 }
 function renderProj(){
@@ -913,10 +921,10 @@ function renderMkt(){
   const add=(n,v,src)=>{ if(v!=null) rows.push(`<tr><td>${n}</td><td>${v}</td><td>${src}</td></tr>`); };
   add('Petróleo Brent (US$/barril)',m.brent!=null?nf2.format(m.brent):null,'Referencia de la banda del MEPCO');
   add('Petróleo WTI (US$/barril)',m.wti!=null?nf2.format(m.wti):null,'Referencia de EE.UU.; no entra en la fórmula chilena');
-  add('Gasolina RBOB (US$/galón)',m.rbob!=null?nf2.format(m.rbob):null,'Aproxima la bencina del Golfo de EE.UU.');
-  add('Diésel ULSD (US$/galón)',m.ulsd!=null?nf2.format(m.ulsd):null,'Aproxima el diésel del Golfo de EE.UU.');
-  add('Dólar observado ($)',m.fx!=null?nf2.format(m.fx):null,'Banco Central');
-  add('UTM del mes ($)',nf0.format(D.utm),'SII');
+  add('Gasolina RBOB (US$/galón)',m.rbob!=null?nf2.format(m.rbob):null,'Gasolina de referencia en EE.UU. (Nueva York); no entra en la fórmula chilena');
+  add('Diésel ULSD (US$/galón)',m.ulsd!=null?nf2.format(m.ulsd):null,'Diésel de referencia en EE.UU. (Nueva York); no entra en la fórmula chilena');
+  add('Dólar observado ($)',m.fx!=null?nf2.format(m.fx):null,'Convierte a pesos el costo de importar (Banco Central, vía SII)');
+  add('UTM del mes ($)',nf0.format(D.utm),'Base del impuesto específico (SII)');
   const E=D.estaciones;
   if(E && E.promedio){
     const lab={g93:'Bencina 93',g95:'Bencina 95',g97:'Bencina 97',diesel:'Diésel'};
@@ -930,14 +938,14 @@ function renderMkt(){
 }
 const GLOSS=[
   ['Brent','Tipo de petróleo del Mar del Norte. Es la referencia mundial de precio y la que usa Chile para el MEPCO. Se cotiza en dólares por barril (159 litros).'],
-  ['WTI','Petróleo de referencia de EE.UU. Suele costar unos US$5–7 menos que el Brent. No entra directamente en el cálculo chileno.'],
+  ['WTI','Petróleo de referencia de EE.UU. Suele costar algunos dólares menos que el Brent. No entra en el cálculo chileno.'],
   ['Costo de importar (paridad)','Lo que costaría traer a Chile un litro de combustible ya refinado: precio en el Golfo de EE.UU. más barco, seguro y ajustes. Lo calcula la CNE cada semana.'],
   ['ENAP','Empresa Nacional del Petróleo, estatal. Refina e importa, y vende al por mayor a las distribuidoras. Cada miércoles publica cuánto variará su precio.'],
   ['Precio mayorista','Precio al que ENAP vende a las distribuidoras, con impuestos incluidos.'],
   ['Fijación','El jueves en que cambia el precio mayorista. Ocurre cada tres semanas.'],
   ['MEPCO','Mecanismo de Estabilización de Precios de los Combustibles (Ley 20.765). Ajusta el impuesto específico para que el precio suba o baje de a poco.'],
   ['Componente variable','La parte del impuesto específico que mueve el MEPCO. Negativa: el Estado cobra menos. Positiva: cobra más.'],
-  ['Banda de referencia','Rango de ±5% alrededor de un precio de referencia que calcula la CNE con el promedio histórico del Brent. El precio ajustado debe quedar dentro de ese rango.'],
+  ['Banda de referencia','Rango de ±5% alrededor de un precio de referencia que calcula la CNE con el Brent de las semanas anteriores, sus precios futuros y un diferencial de refinación. El costo de importar más el ajuste del Estado debe quedar dentro de ese rango.'],
   ['Impuesto específico','Impuesto fijo por litro: 6 UTM por metro cúbico en bencinas y 1,5 en diésel. No paga IVA.'],
   ['UTM','Unidad Tributaria Mensual. Un valor en pesos que el SII reajusta cada mes con la inflación.'],
   ['Margen de refinación','Diferencia entre el precio del combustible refinado y el del crudo. Sube cuando faltan refinerías o hay alta demanda.'],

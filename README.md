@@ -13,7 +13,7 @@ La página parte con una portada (precio de hoy, barril con su composición y tr
 - `index.html` es la página completa: HTML, CSS y JavaScript sin dependencias.
 - `data/actual.json` tiene los datos vigentes (paridad, banda, impuesto, precios mayoristas, Brent y dólar por semana).
 - `data/historial.json` tiene el componente variable del impuesto específico de cada semana de 2026.
-- Los datos se actualizan cada jueves, después del informe de ENAP (miércoles) y del decreto de impuestos (SII, jueves).
+- Brent, WTI, dólar observado y precios en estación se actualizan solos cada día hábil (GitHub Actions, `scripts/actualizar-mercado.mjs`). Los datos oficiales del MEPCO se actualizan cada jueves, después del informe de ENAP (miércoles) y del decreto de impuestos (SII, jueves).
 - `scripts/validar.mjs` revisa que los datos tengan la forma correcta y que la calibración cuadre: `node scripts/validar.mjs`.
 
 ## El modelo
@@ -23,7 +23,7 @@ La página parte con una portada (precio de hoy, barril con su composición y tr
 - **Impuesto específico** = 6 UTM/m³ en bencinas, 1,5 UTM/m³ en diésel, más el componente variable del MEPCO (Ley 20.765).
 - **IVA** 19% sobre todo salvo el impuesto específico (Ley 18.502, art. 6).
 - **Regla MEPCO:** el mayorista cambia cada 3 semanas, como máximo 2,4% del precio base, y la paridad más el componente variable debe quedar dentro de la banda de ±5% del precio de referencia.
-- **Precio en estación:** mayorista + margen promedio estimado en la Región Metropolitana.
+- **Precio en estación:** promedio real de la Región Metropolitana según Bencina en Línea (CNE), actualizado cada día hábil. El margen de distribución y estación es ese promedio menos el mayorista.
 
 Es un modelo de estimación, no una cifra oficial. ENAP no fija precios al público; cada estación cobra distinto.
 
