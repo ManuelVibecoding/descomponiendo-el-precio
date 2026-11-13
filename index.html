@@ -110,7 +110,15 @@ html.og .ogtag{display:block;font-size:22px;font-weight:700;color:var(--navy);ma
 .trad .ta b{white-space:nowrap}
 .trad .ta .n1{font-family:var(--f-head);font-weight:700;font-size:1.35rem;color:var(--navy)}
 .trad .tn{font-size:.84rem;color:var(--muted);max-width:48em}
-html.og .trad,html.og .pie{display:none}
+html.og .trad,html.og .pie,html.og .loc{display:none}
+/* precio donde carga cada persona */
+.loc{border-left:3px solid var(--s-sta);padding:4px 0 4px 14px;display:flex;flex-direction:column;gap:6px;max-width:36em}
+.loc .lq{font-size:.95rem;font-weight:600;line-height:1.9}
+.loc select{font:inherit;font-weight:600;color:var(--navy);background:transparent;border:0;border-bottom:2px solid var(--s-sta);border-radius:0;padding:0 2px 1px;cursor:pointer;max-width:100%}
+.loc select:hover{background:var(--soft)}
+.loc .lo{font-size:.95rem}
+.loc .lo b{white-space:nowrap}
+.loc .ln{display:block;font-size:.84rem;color:var(--muted);margin-top:3px}
 /* pie de página */
 .pie{max-width:960px;margin:56px auto 0;border-top:2px solid var(--navy);padding-top:18px;display:flex;flex-direction:column;gap:8px;font-size:.9rem;color:var(--muted)}
 .pie b{color:var(--ink);font-family:var(--f-head);font-weight:600}
@@ -289,6 +297,10 @@ html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important
       <p class="lead rise" style="--d:.16s">Del barril de petróleo a tu estanque: cómo se forma el precio de la bencina y el diésel en Chile, y qué viene en las próximas semanas.</p>
       <p class="q rise" style="--d:.28s" id="h-q">¿Cuánto cuesta hoy un litro?</p>
       <div class="price rise" style="--d:.34s"><span class="big" id="p-now">$—</span><span class="unit" id="p-unit"></span></div>
+      <div class="loc rise" style="--d:.38s" id="loc" hidden>
+        <p class="lq">¿Y donde cargas tú? <select id="loc-reg" aria-label="Región"></select> <select id="loc-com" aria-label="Comuna"></select></p>
+        <p class="lo" id="loc-out" aria-live="polite"></p>
+      </div>
       <p class="s1 rise" style="--d:.42s" id="s1-text"></p>
       <p class="ogtag">Simulador y proyección semanal del MEPCO</p>
     </div>
@@ -345,7 +357,7 @@ const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','
 const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 const longDate = s => { const d=toD(s); return DIAS[d.getUTCDay()]+' '+d.getUTCDate()+' de '+MESES[d.getUTCMonth()]; };
 
-let D=null, H=null, CAL=null;
+let D=null, H=null, CAL=null, LOC=null;
 const P = {};
 let fuel = 'g93';
 try{ const f=localStorage.getItem('bab-fuel'); if(FUELS.includes(f)) fuel=f; }catch(e){}
@@ -711,8 +723,49 @@ function renderTrad(){
   const fr=D.congelamiento||{};
   $('#tr-note').textContent = 'Con las reglas actuales del MEPCO y el resto de los valores de hoy.' + (fr.estado&&fr.hasta ? ` Si se aprueba el congelamiento, el precio solo podría mantenerse o bajar hasta el ${ddmmyy(fr.hasta)}.` : '');
 }
+// ---- precio por región y comuna (Bencina en Línea)
+const REG_CORTO = {'Metropolitana de Santiago':'Región Metropolitana','Del Libertador Gral. Bernardo O’Higgins':'O’Higgins','Aysén del Gral. Carlos Ibáñez del Campo':'Aysén','Magallanes y de la Antártica Chilena':'Magallanes','De la Araucanía':'La Araucanía','De los Lagos':'Los Lagos','De los Ríos':'Los Ríos','Del Maule':'Maule','Del Biobío':'Biobío'};
+const regNombre = r => REG_CORTO[r] || r;
+const RM_NOMBRE = 'Metropolitana de Santiago';
+function locInit(){
+  if(!LOC || !LOC.regiones || !LOC.regiones[RM_NOMBRE]) return;
+  const regs = Object.keys(LOC.regiones).sort((a,b)=> a===RM_NOMBRE?-1 : b===RM_NOMBRE?1 : regNombre(a).localeCompare(regNombre(b),'es'));
+  $('#loc-reg').innerHTML = regs.map(r=>`<option value="${esc(r)}">${esc(regNombre(r))}</option>`).join('');
+  let saved={}; try{ saved=JSON.parse(localStorage.getItem('bab-loc')||'{}'); }catch(e){}
+  if(saved.reg && LOC.regiones[saved.reg]) $('#loc-reg').value=saved.reg;
+  locComunas(saved.com);
+  $('#loc-reg').addEventListener('change',()=>{ locComunas(''); renderLoc(); });
+  $('#loc-com').addEventListener('change',renderLoc);
+  $('#loc').hidden=false;
+}
+function locComunas(sel){
+  const R = LOC.regiones[$('#loc-reg').value];
+  const cs = Object.keys(R.comunas).sort((a,b)=>a.localeCompare(b,'es'));
+  $('#loc-com').innerHTML = '<option value="">toda la región</option>' + cs.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if(sel && R.comunas[sel]) $('#loc-com').value = sel;
+}
+function renderLoc(){
+  if(!LOC || $('#loc').hidden) return;
+  const reg=$('#loc-reg').value, com=$('#loc-com').value, R=LOC.regiones[reg];
+  try{ localStorage.setItem('bab-loc', JSON.stringify({reg, com})); }catch(e){}
+  const dato = (com ? R.comunas[com] : R.total)?.[fuel], nac = LOC.nacional?.[fuel], fl = NAME[fuel].toLowerCase();
+  const lugar = com ? com : (reg===RM_NOMBRE ? 'la Región Metropolitana' : 'la región de '+regNombre(reg));
+  const ref = D.estaciones?.promedio?.[fuel];
+  let t;
+  if(!dato) t = `No hay estaciones de ${esc(lugar)} que hayan informado el precio de ${art()} ${fl} esta semana.`;
+  else {
+    const [p,n] = dato, d = ref ? p-ref : 0;
+    t = `En ${esc(lugar)}, ${art()} ${fl} promedia <b>${money(p)}</b> por litro (${n} ${n===1?'estación':'estaciones'})`;
+    if(!com && reg===RM_NOMBRE) t += ': es el promedio que usa esta página.';
+    else if(ref) t += Math.abs(d)<1 ? ', igual que el promedio de la Región Metropolitana que usa esta página.' : `, ${money(Math.abs(d))} ${d>0?'más':'menos'} que el promedio de la Región Metropolitana que usa esta página.`;
+    else t += '.';
+  }
+  if(nac) t += ` Promedio nacional: ${money(nac[0])}.`;
+  t += `<span class="ln">Precios informados por cada estación a Bencina en Línea (CNE), al ${ddmmyy(LOC.fecha)}. La diferencia entre lugares está casi toda en el margen de la estación y, en regiones, en el costo de llevar el combustible.</span>`;
+  $('#loc-out').innerHTML = t;
+}
 function renderHero(){
-  renderTrad();
+  renderTrad(); renderLoc();
   const now=parts(fuel,'hoy'), T=SIM0.T, p0=SIM0.pump(fuel,0,false), p1=SIM0.pump(fuel,3,false), d=p1-p0, aj=now.ajuste, m=D.mercado||{};
   const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
   $('#keys').innerHTML=[
@@ -967,7 +1020,7 @@ render = function(){ _render(); renderHist(); };
 
 // ================= datos =================
 let started=false;
-function start(){ $('#loading')?.remove(); build(); prepare(); resetParams(); P0={...P}; SIM0=simulate(P0); syncInputs(); renderAll(); renderHero();
+function start(){ $('#loading')?.remove(); build(); locInit(); prepare(); resetParams(); P0={...P}; SIM0=simulate(P0); syncInputs(); renderAll(); renderHero();
   // las secciones aparecen al bajar; el Gráfico 3 se revela la primera vez que entra en pantalla
   if('IntersectionObserver' in window && !calm()){
     document.documentElement.classList.add('js-reveal');
@@ -984,11 +1037,12 @@ function fail(msg){ const l=$('#loading'); if(l) l.textContent=msg; $('#meta').i
 (async()=>{
   // Los datos viven en data/actual.json y data/historial.json; la tarea semanal los actualiza cada jueves.
   try{
-    const [a,h] = await Promise.all([
+    const [a,h,l] = await Promise.all([
       fetch('data/actual.json',{cache:'no-cache'}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }),
-      fetch('data/historial.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null)
+      fetch('data/historial.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('data/estaciones.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null)
     ]);
-    D=a; H=h; started=true; start();
+    D=a; H=h; LOC=l; started=true; start();
   }catch(e){ fail('No se pudieron cargar los datos ('+e.message+'). Si abriste el archivo directo desde tu computador, ábrelo con un servidor local o desde GitHub Pages.'); }
 })();
 })();

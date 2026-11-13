@@ -137,6 +137,32 @@ if (est && A.vigencia) {
     C[f].margen = margen;
   }
   A.estaciones = res;
+
+  // Promedios por región y por comuna (mismas estaciones de la semana de vigencia) en data/estaciones.json,
+  // para que cada persona compare con el precio donde carga. No afecta el modelo.
+  const LOC = { fecha: hoyCL, desde, nacional: {}, regiones: {} };
+  const acum = {}; // clave región|comuna (comuna '' = toda la región; región '' = nacional)
+  for (const s of est) {
+    for (const [f, cod] of Object.entries(CODIGO)) {
+      const c = (s.combustibles || []).find(x => x.nombre_corto === cod), p = +(c?.precio);
+      const fch = (c?.precio_fecha || '').slice(0, 10);
+      if (!p || p < 500 || p > 3000 || fch < desde || fch >= hasta) continue;
+      for (const k of ['|', `${s.region}|`, `${s.region}|${s.comuna}`]) ((acum[k] ??= {})[f] ??= []).push(p);
+    }
+  }
+  const resumen = o => Object.fromEntries(Object.entries(o).map(([f, v]) => [f, [Math.round(prom(v)), v.length]]));
+  for (const [k, o] of Object.entries(acum)) {
+    const [reg, com] = k.split('|');
+    if (!reg) { LOC.nacional = resumen(o); continue; }
+    const R = (LOC.regiones[reg] ??= { total: {}, comunas: {} });
+    if (!com) R.total = resumen(o); else R.comunas[com] = resumen(o);
+  }
+  const RUTA_LOC = new URL('../data/estaciones.json', import.meta.url);
+  let previo = ''; try { previo = readFileSync(RUTA_LOC, 'utf8'); } catch {}
+  const nuevo = JSON.stringify(LOC) + '\n';
+  // solo reescribe si cambiaron los precios (no por la fecha)
+  const sinFecha = t => { try { const o = JSON.parse(t); delete o.fecha; return JSON.stringify(o); } catch { return ''; } };
+  if (Object.keys(LOC.nacional).length && sinFecha(previo) !== sinFecha(nuevo)) writeFileSync(RUTA_LOC, nuevo);
   const i = (A.supuestos || []).findIndex(t => t.startsWith('Precios en bomba'));
   if (i >= 0 && res.n.g93 >= 100) A.supuestos[i] = `Precios en bomba = promedio de la Región Metropolitana según Bencina en Línea (CNE), con las estaciones que informaron su precio desde el ${desde.split('-').reverse().join('-')} (${res.n.g93} en la 93). El margen de distribución y estación es ese promedio menos el precio mayorista estimado. Cada estación cobra distinto: en la RM, 9 de cada 10 estaciones venden la 93 entre $${res.p05.g93.toLocaleString('es-CL')} y $${res.p95.g93.toLocaleString('es-CL')}.`;
 }

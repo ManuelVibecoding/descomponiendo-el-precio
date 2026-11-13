@@ -13,6 +13,7 @@ Proyecto de Manuel Amenábar. Página estática que explica y proyecta el precio
 - `index.html`: página completa. Lee `data/actual.json` y `data/historial.json` con `fetch`.
 - `data/actual.json`: datos vigentes. Campos clave por combustible (`g93`, `g97`, `diesel`): `paridad` y `bandaSup` en $/L, `cvUTM` (componente variable, UTM/m³), `iebUTM` (6 o 1,5), `mayorista` ($/L con impuestos), `margen` ($/L con IVA, estación RM), `premio` (calibración ENAP), `deriva` (deriva semanal de la banda, $/L), `futPeso` (ponderador de futuros), `base` (últimos 3 precios base de Hacienda).
 - `data/historial.json`: `filas` con `{f, u, g93, g97, d}` (fecha jueves, UTM, componente variable en UTM/m³).
+- `data/estaciones.json`: promedios de Bencina en Línea por región y comuna (`[precio, n° de estaciones]` por combustible) para el selector "¿Y donde cargas tú?" de la portada. Lo genera solo `scripts/actualizar-mercado.mjs`; no se edita a mano ni afecta el modelo.
 - `scripts/validar.mjs`: correr después de cada actualización.
 - `scripts/servir.mjs`: servidor local para ver la página (`node scripts/servir.mjs`, luego http://localhost:8000).
 
