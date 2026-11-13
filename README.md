@@ -2,12 +2,11 @@
 
 Cómo se forma el precio de la bencina y el diésel en Chile, desde el barril de petróleo hasta la estación, y qué viene en las próximas fijaciones.
 
-La página explica el precio en cuatro pasos:
+La página parte con una portada (precio de hoy, barril con su composición y tres cifras clave) y sigue en tres pasos:
 
-1. **¿Cuánto cuesta un litro hoy?** Un barril dividido en franjas: petróleo, refinarlo y traerlo, estación, impuestos y ajuste del Estado.
-2. **¿De dónde sale cada parte?** Las cinco etapas del precio, con un barril que se va llenando paso a paso.
-3. **¿Qué pasa si cambia el petróleo o el dólar?** Simulador con el Brent y el tipo de cambio.
-4. **¿Qué viene?** Proyección semanal con la regla del MEPCO y con el congelamiento propuesto en noviembre de 2026.
+1. **¿De dónde sale cada parte?** Las cinco etapas del precio, con un barril que se va llenando paso a paso.
+2. **¿Qué pasa si cambia el petróleo o el dólar?** Simulador con el Brent y el tipo de cambio.
+3. **¿Qué viene?** Proyección semanal con la regla del MEPCO y con el congelamiento propuesto en noviembre de 2026.
 
 ## Cómo funciona
 
@@ -35,7 +34,7 @@ CNE (informes técnicos MEPCO y decretos de paridad y referencia), SII (impuesto
 ## Ver en local
 
 ```bash
-python -m http.server 8000
+node scripts/servir.mjs
 # abrir http://localhost:8000
 ```
 

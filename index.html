@@ -17,27 +17,31 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
 <style>
-/* Layout: nota técnica de una columna (texto 680px, figuras 960px), 4 pasos numerados + anexo plegable.
-   Paleta: blanco, tinta azul-negra, azul marino para el costo, rojo óxido solo para impuestos. */
+/* Layout: portada con el barril animado + 3 pasos numerados + anexo plegable (texto 680px, figuras 960px).
+   Paleta: azul marino (petróleo), petróleo verdoso (refinar), ámbar (estación), rojo óxido solo para impuestos. */
 :root{
   --bg:#FFFFFF; --ink:#17202D; --muted:#5D6878; --rule:#DCE1E7; --soft:#F3F5F8;
   --navy:#1C355E; --accent:#8C2B25;
-  --s-oil:#1C355E; --s-ref:#5A7DB3; --s-sta:#AAB7C9; --s-tax:#8C2B25; --s-adj:#17202D;
+  --s-oil:#1C355E; --s-ref:#2B8A99; --s-sta:#D9A23A; --s-tax:#8C2B25; --s-adj:#17202D;
   --up:#8C2B25; --down:#1C355E;
   --steel:#C7CFD9; --steel-dk:#8E99A8; --steel-lt:#E4E8ED; --shadow:rgba(20,30,45,.18);
+  --hero-a:#E6EDF7; --hero-b:#F7F1E6; --tint:#F3F6FA; --glow:rgba(43,138,153,.16);
   --f-head:"Source Serif 4",Georgia,"Times New Roman",serif;
   --f-body:"Source Sans 3","Segoe UI",system-ui,-apple-system,sans-serif;
+  --gut:max(16px,env(safe-area-inset-left,0px));
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0F141B; --ink:#E5E9EF; --muted:#9BA6B5; --rule:#283241; --soft:#171E28;
   --navy:#9DB8E6; --accent:#E07F72;
-  --s-oil:#A9C2EC; --s-ref:#5F86C6; --s-sta:#3F4E66; --s-tax:#D06C5F; --s-adj:#E5E9EF;
-  --up:#E07F72; --down:#9DB8E6; --steel:#3B4553; --steel-dk:#252D38; --steel-lt:#55606F; --shadow:rgba(0,0,0,.5); color-scheme:dark}}
+  --s-oil:#A9C2EC; --s-ref:#4DB0BD; --s-sta:#E2B456; --s-tax:#D06C5F; --s-adj:#E5E9EF;
+  --up:#E07F72; --down:#9DB8E6; --steel:#3B4553; --steel-dk:#252D38; --steel-lt:#55606F; --shadow:rgba(0,0,0,.5);
+  --hero-a:#111B2A; --hero-b:#19160F; --tint:#141B25; --glow:rgba(77,176,189,.14); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0F141B; --ink:#E5E9EF; --muted:#9BA6B5; --rule:#283241; --soft:#171E28;
   --navy:#9DB8E6; --accent:#E07F72;
-  --s-oil:#A9C2EC; --s-ref:#5F86C6; --s-sta:#3F4E66; --s-tax:#D06C5F; --s-adj:#E5E9EF;
-  --up:#E07F72; --down:#9DB8E6; --steel:#3B4553; --steel-dk:#252D38; --steel-lt:#55606F; --shadow:rgba(0,0,0,.5); color-scheme:dark}
+  --s-oil:#A9C2EC; --s-ref:#4DB0BD; --s-sta:#E2B456; --s-tax:#D06C5F; --s-adj:#E5E9EF;
+  --up:#E07F72; --down:#9DB8E6; --steel:#3B4553; --steel-dk:#252D38; --steel-lt:#55606F; --shadow:rgba(0,0,0,.5);
+  --hero-a:#111B2A; --hero-b:#19160F; --tint:#141B25; --glow:rgba(77,176,189,.14); color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
@@ -54,28 +58,71 @@ p{margin:0}
 .num{font-variant-numeric:tabular-nums}
 b,strong{font-weight:600}
 
-/* cabecera */
-.masthead{border-top:3px solid var(--navy);padding-top:22px;margin-top:20px;display:flex;flex-direction:column;gap:10px}
-.meta{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:.86rem;color:var(--muted)}
-.meta span+span::before{content:"";}
-.fuelbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);
-  display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding-block:10px;margin-top:22px}
-.fuelbar .lab{font-size:.86rem;color:var(--muted)}
-.tabs{display:flex;gap:2px;flex-wrap:wrap}
-.tabs button{font:inherit;font-size:.95rem;border:1px solid transparent;border-radius:4px;background:none;color:var(--ink);padding:5px 12px;cursor:pointer}
+/* barra superior fija: marca + selector de combustible */
+.topnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;margin-inline:calc(-1*var(--gut));
+  background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:saturate(1.5) blur(10px);backdrop-filter:saturate(1.5) blur(10px);border-bottom:1px solid var(--rule)}
+.topnav .in{max-width:calc(960px + 2*var(--gut));margin:0 auto;padding:8px var(--gut);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-family:var(--f-head);font-weight:700;font-size:1.08rem;color:var(--navy);text-decoration:none;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand svg{width:20px;height:22px;flex:none}
+.tabs{display:flex;gap:2px}
+.tabs button{font:inherit;font-size:.95rem;border:1px solid transparent;border-radius:4px;background:none;color:var(--ink);padding:5px 12px;cursor:pointer;white-space:nowrap;transition:background-color .25s,color .25s}
 .tabs button:hover{border-color:var(--rule)}
 .tabs button[aria-pressed="true"]{background:var(--navy);color:var(--bg);font-weight:600}
 :focus-visible{outline:2px solid var(--s-ref);outline-offset:2px}
 
+/* portada */
+.hero{margin-inline:calc(-1*var(--gut));background:linear-gradient(155deg,var(--hero-a) 0%,var(--hero-b) 100%);border-bottom:1px solid var(--rule);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;width:720px;height:720px;right:-220px;top:-260px;border-radius:50%;background:radial-gradient(closest-side,var(--glow),transparent);pointer-events:none}
+.hero .in{position:relative;max-width:calc(960px + 2*var(--gut));margin:0 auto;padding:38px var(--gut) 26px;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:10px 34px;align-items:center}
+.htxt{display:flex;flex-direction:column;gap:12px;min-width:0}
+.meta{display:flex;flex-wrap:wrap;gap:2px 16px;font-size:.84rem;color:var(--muted)}
+.hero h1{font-size:clamp(2.5rem,6vw,3.7rem);font-weight:700;letter-spacing:-.015em;color:var(--navy);line-height:1.02}
+.hero .lead{font-size:1.12rem;color:var(--ink);max-width:30em}
+.hero .q{font-family:var(--f-head);font-weight:600;font-size:1.08rem;margin-top:10px;padding-top:14px;border-top:1px solid var(--rule)}
+.hero .s1{font-size:.98rem;max-width:34em}
+.hfig figcaption{border-top-color:color-mix(in srgb,var(--rule) 70%,transparent)}
+.keys{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:2px solid var(--navy);margin-top:8px}
+.keys>div{padding:12px 16px 6px 0;display:flex;flex-direction:column;gap:2px;min-width:0}
+.keys>div+div{padding-left:16px;border-left:1px solid var(--rule)}
+.keys .k{font-size:.82rem;color:var(--muted)}
+.keys .v{font-family:var(--f-head);font-weight:700;font-size:1.65rem;line-height:1.15;font-variant-numeric:tabular-nums;color:var(--navy)}
+.keys .v.up{color:var(--up)}
+.keys .s{font-size:.82rem;color:var(--muted)}
+.cue{grid-column:1 / -1;justify-self:center;margin-top:6px;color:var(--muted);font-size:.84rem;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:2px}
+.cue svg{width:18px;height:18px;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(4px)}}
+
 /* secciones */
-section.step{border-top:1px solid var(--rule);padding-block:38px 6px;display:flex;flex-direction:column;gap:18px;min-width:0}
+section.step{border-top:1px solid var(--rule);padding-block:42px 10px;display:flex;flex-direction:column;gap:18px;min-width:0}
 section.step:first-of-type{border-top:0}
+section.step,#top{scroll-margin-top:56px}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+section.step.tint{background:var(--tint);box-shadow:0 0 0 100vmax var(--tint);clip-path:inset(0 -100vmax);border-top-color:transparent;padding-bottom:36px;margin-top:20px}
+section.step.tint+section.step{border-top-color:transparent}
 .stephead{display:flex;gap:14px;align-items:baseline}
-.stephead .n{font-family:var(--f-head);font-weight:700;font-size:1.55rem;color:var(--muted);min-width:1.2em}
+.stephead .n{font-family:var(--f-head);font-weight:700;font-size:2.1rem;line-height:1;color:var(--s-ref);min-width:1.1em}
 .lead{font-size:1.08rem}
 .price{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
-.price .big{font-family:var(--f-head);font-weight:700;font-size:clamp(2.6rem,7vw,3.6rem);line-height:1;font-variant-numeric:tabular-nums;color:var(--navy)}
-.price .unit{color:var(--muted)}
+.price .big{font-family:var(--f-head);font-weight:700;font-size:clamp(3.2rem,9vw,4.6rem);line-height:1;font-variant-numeric:tabular-nums;color:var(--navy)}
+.price .unit{color:var(--muted);max-width:16em;line-height:1.3}
+
+/* animaciones (se desactivan si el sistema pide menos movimiento) */
+.rise{animation:rise .8s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d,0s)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+svg.anim .lay{transform-box:fill-box;transform-origin:50% 100%;animation:bfill .7s cubic-bezier(.3,.75,.25,1) both;animation-delay:calc(var(--i)*.24s + .2s)}
+@keyframes bfill{from{transform:scaleY(0)}}
+svg.anim .lbl{animation:lblin .45s ease-out both;animation-delay:calc(var(--i)*.24s + .55s)}
+@keyframes lblin{from{opacity:0;transform:translateX(-8px)}}
+.rvr{transform-box:fill-box;transform-origin:0 50%;animation:reveal 1.6s cubic-bezier(.35,.6,.25,1) both}
+@keyframes reveal{from{transform:scaleX(0)}}
+.js-reveal section.step{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+.js-reveal section.step.in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){
+  .rise,svg.anim .lay,svg.anim .lbl,.rvr,.cue svg{animation:none!important}
+  .js-reveal section.step{opacity:1;transform:none;transition:none}
+}
 
 /* figuras */
 figure{margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -129,9 +176,13 @@ td .d{display:block;font-size:.82rem;color:var(--muted);font-weight:400}
 .node .av{font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;text-align:right;grid-column:3;grid-row:1}
 .node .ac{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;grid-column:3;grid-row:2}
 .node .hint{font-size:.8rem;color:var(--muted);grid-column:2;grid-row:2}
-.node.on{background:var(--soft);box-shadow:inset 3px 0 0 var(--navy)}
-.node.on svg{stroke:var(--navy)}
+.node{transition:background-color .3s,opacity .3s,box-shadow .3s}
+.node:hover{background:var(--soft)}
+.node.on{background:var(--soft);box-shadow:inset 4px 0 0 var(--c,var(--navy))}
+.node.on svg{stroke:var(--c,var(--navy))}
 .node.off{opacity:.5}
+.chain li{transition:background-color .3s}
+.chain li.hl{background:linear-gradient(90deg,var(--soft),transparent 70%)}
 .chain li.hl h3{color:var(--navy)}
 .readout{font-size:.95rem;font-variant-numeric:tabular-nums;min-height:1.6em}
 @media (max-width:720px){
@@ -182,18 +233,47 @@ ul.plain{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;m
   dl.gloss{grid-template-columns:1fr;gap:2px}
   dl.gloss dd{margin-bottom:10px}
   body{font-size:16px}
+  .hero .in{grid-template-columns:1fr;padding-top:26px}
+  .keys{grid-template-columns:1fr}
+  .keys>div+div{padding-left:0;border-left:0;border-top:1px solid var(--rule)}
+  .keys>div{padding:10px 0 8px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 12px;align-items:baseline}
+  .keys .k{grid-column:1}.keys .v{grid-column:2;grid-row:1 / 3;font-size:1.45rem;text-align:right}.keys .s{grid-column:1}
 }
+@media (max-width:560px){
+  .tabs .lg{display:none}
+  .tabs button{padding:5px 10px}
+}
+@media (max-width:370px){ .brand span{display:none} }
 
 html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important}img{max-width:100%}
 </style>
 </head>
 <body>
+<nav class="topnav" aria-label="Combustible">
+  <div class="in">
+    <a class="brand" href="#top"><svg viewBox="0 0 20 22" aria-hidden="true"><path d="M3 2h14q2.2 9 0 18H3q-2.2-9 0-18z" style="fill:var(--s-oil)"/><path d="M1.6 8h16.8M1.6 14h16.8" style="stroke:var(--bg)" stroke-width="1.4"/><path d="M3 2h14q.6 2.4.9 6H2.1q.3-3.6.9-6z" style="fill:var(--s-tax)"/></svg><span>Barril a Bomba</span></a>
+    <div class="tabs" role="group" id="tabs"></div>
+  </div>
+</nav>
+<header class="hero" id="top">
+  <div class="in">
+    <div class="htxt">
+      <div class="meta rise" id="meta"><span>Cargando datos…</span></div>
+      <h1 class="rise" style="--d:.08s">Barril a Bomba</h1>
+      <p class="lead rise" style="--d:.16s">Del barril de petróleo a tu estanque: cómo se forma el precio de la bencina y el diésel en Chile, y qué viene en las próximas semanas.</p>
+      <p class="q rise" style="--d:.28s" id="h-q">¿Cuánto cuesta hoy un litro?</p>
+      <div class="price rise" style="--d:.34s"><span class="big" id="p-now">$—</span><span class="unit" id="p-unit"></span></div>
+      <p class="s1 rise" style="--d:.42s" id="s1-text"></p>
+    </div>
+    <figure class="hfig">
+      <div class="barrel" id="barrel1" role="img"></div>
+      <figcaption id="cap1"></figcaption>
+    </figure>
+    <div class="keys" id="keys"></div>
+    <a class="cue" href="#s2">Ver de dónde sale cada parte<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 7l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  </div>
+</header>
 <div class="page">
-  <header class="masthead">
-    <h1>Barril a Bomba</h1>
-    <p class="text lead muted">Cómo se forma el precio de la bencina y el diésel en Chile, desde el barril de petróleo hasta lo que pagas en la estación, y qué viene en las próximas semanas.</p>
-    <div class="meta" id="meta"><span>Cargando datos…</span></div>
-  </header>
   <div id="app"><p class="loading" id="loading">Cargando los datos oficiales de esta semana…</p></div>
 </div>
 
@@ -319,24 +399,10 @@ const parInst = (f,p=P) => f==='g95' ? (parInst('g93',p)+parInst('g97',p))/2 : (
 const SEG = [['petroleo','Petróleo crudo','--s-oil'],['refinar','Refinarlo y traerlo a Chile','--s-ref'],['estacion','Distribución y estación','--s-sta'],['impuestos','Impuestos','--s-tax']];
 
 function build(){
+  $('#tabs').innerHTML = FUELS.map(f=>`<button type="button" data-fuel="${f}" aria-pressed="${f===fuel}" aria-label="${NAME[f]}">${f==='diesel'?'Diésel':`<span class="lg">Bencina </span>${SHORT[f]}`}</button>`).join('');
   $('#app').innerHTML = `
-  <nav class="fuelbar" aria-label="Combustible">
-    <span class="lab">Combustible</span>
-    <div class="tabs" role="group">${FUELS.map(f=>`<button type="button" data-fuel="${f}" aria-pressed="${f===fuel}">${NAME[f]}</button>`).join('')}</div>
-  </nav>
-
-  <section class="step" id="s1">
-    <div class="stephead"><span class="n">1</span><h2>¿Cuánto cuesta un litro hoy?</h2></div>
-    <div class="price"><span class="big" id="p-now"></span><span class="unit" id="p-unit"></span></div>
-    <p class="text lead" id="s1-text"></p>
-    <figure>
-      <div class="barrel" id="barrel1" role="img"></div>
-      <figcaption id="cap1"></figcaption>
-    </figure>
-  </section>
-
   <section class="step" id="s2">
-    <div class="stephead"><span class="n">2</span><h2>¿De dónde sale cada parte?</h2></div>
+    <div class="stephead"><span class="n">1</span><h2>¿De dónde sale cada parte?</h2></div>
     <p class="text">El precio se arma en cinco etapas, en este orden. Toca cada etapa para ver cuánto agrega y cuánto va sumando el litro.</p>
     <figure>
       <div class="flowwrap">
@@ -352,8 +418,8 @@ function build(){
     </details>
   </section>
 
-  <section class="step" id="s3">
-    <div class="stephead"><span class="n">3</span><h2>¿Qué pasa si cambia el petróleo o el dólar?</h2></div>
+  <section class="step tint" id="s3">
+    <div class="stephead"><span class="n">2</span><h2>¿Qué pasa si cambia el petróleo o el dólar?</h2></div>
     <p class="text">Mueve los dos indicadores que más pesan. El resultado muestra cuánto debería costar el litro si el nuevo costo se traspasara completo, sin ningún amortiguador.</p>
     <p class="small muted" id="mkt"></p>
     <div class="controls">
@@ -392,7 +458,7 @@ function build(){
   </section>
 
   <section class="step" id="s4">
-    <div class="stephead"><span class="n">4</span><h2>¿Qué viene en las próximas semanas?</h2></div>
+    <div class="stephead"><span class="n">3</span><h2>¿Qué viene en las próximas semanas?</h2></div>
     <p class="text lead" id="s4-text"></p>
     <p class="text" id="s4-freeze"></p>
     <figure>
@@ -436,7 +502,7 @@ function build(){
   document.querySelectorAll('[data-fuel]').forEach(b=>b.addEventListener('click',()=>{
     fuel=b.dataset.fuel; try{localStorage.setItem('bab-fuel',fuel);}catch(e){}
     document.querySelectorAll('[data-fuel]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.fuel===fuel));
-    syncInputs(); render();
+    animNext=true; syncInputs(); render(); renderHero();
   }));
   const on=(id,fn)=>$('#'+id).addEventListener('input',e=>{fn(+e.target.value); render();});
   on('in-brent',v=>P.brent=v); on('in-fx',v=>P.fx=v);
@@ -473,6 +539,8 @@ function barrelSVG(el, o, opt={}){
   const Wd=Math.max(220, el.clientWidth||600);
   const labels=opt.labels!==false, upto=opt.upto??4;
   const H=opt.H||(labels?360:300);
+  // opt.anim: llena el barril capa por capa; opt.animOnly: anima solo esa capa (diagrama de etapas)
+  const anim=!!opt.anim, only=opt.animOnly, lay=i=>anim?` class="lay" style="--i:${i}"`:only===i?` class="lay" style="--i:0"`:'';
   const bw=labels ? Math.min(190, Math.max(120, Wd*0.36)) : Math.min(170, Wd*0.62);
   const bx=labels ? Math.max(18, Math.min(60, Wd*0.06)) : (Wd-bw)/2;
   const ry=bw*0.11, B=bw*0.07, yT=34+ry, yB=H-26-ry;
@@ -500,13 +568,13 @@ function barrelSVG(el, o, opt={}){
   keys.forEach((k,i)=>{ const v=Math.max(0,o[k]); const h=v*s; const top=(i===0? yB : y) - h;
     if(i>upto || v<=0) return;
     const y0 = i===0 ? yB+ry : y, bot = i===0 ? yB : y;
-    g+=`<rect x="${bx-2*B}" y="${top}" width="${bw+4*B}" height="${y0-top}" style="fill:var(${cols[i]})"/>`; bands.push({i,top,bot,v,name:names[i]});
+    g+=`<g${lay(i)}><rect x="${bx-2*B}" y="${top}" width="${bw+4*B}" height="${y0-top}" style="fill:var(${cols[i]})"/></g>`; bands.push({i,top,bot,v,name:names[i]});
     y = top; });
   let fillTop=y, adjBand=null;
   if(upto>=4 && Math.abs(o.ajuste)>0.5){
     const h=Math.abs(o.ajuste)*s;
     const top = o.ajuste<0 ? fillTop : fillTop-h, bot = o.ajuste<0 ? fillTop+h : fillTop;
-    g+=`<rect x="${bx-2*B}" y="${top}" width="${bw+4*B}" height="${bot-top}" fill="url(#${id}h)" opacity=".85"/>`;
+    g+=`<g${lay(4)}><rect x="${bx-2*B}" y="${top}" width="${bw+4*B}" height="${bot-top}" fill="url(#${id}h)" opacity=".85"/></g>`;
     adjBand={top,bot}; if(o.ajuste>0) fillTop=top;
   }
   g+=`<rect x="${bx-2*B}" y="${yT-ry}" width="${bw+4*B}" height="${yB-yT+2*ry}" fill="url(#${id}s)"/>`;
@@ -525,7 +593,7 @@ function barrelSVG(el, o, opt={}){
   g+=`<ellipse cx="${cx+bw*0.22}" cy="${yT}" rx="${bw*0.06}" ry="${ry*0.28}" style="fill:var(--steel-dk)" stroke="#000" stroke-opacity=".3"/>`;
   // total sobre la tapa
   const tot = upto>=4 ? o.total : bands.reduce((a,b)=>a+b.v,0);
-  g+=`<text x="${cx}" y="${yT-ry-10}" text-anchor="middle" style="font-size:${labels?17:16}px;font-weight:700;fill:var(--ink)">${opt.topLabel?opt.topLabel+' ':''}${money(tot)}</text>`;
+  g+=`<text${anim?' class="lbl" style="--i:5"':''} x="${cx}" y="${yT-ry-10}" text-anchor="middle" style="font-size:${labels?17:16}px;font-weight:700;fill:var(--ink)">${opt.topLabel?opt.topLabel+' ':''}${money(tot)}</text>`;
   // etiquetas con línea guía
   if(labels){
     const lx=bx+bw+B+34, items=bands.map(b=>({y:(b.top+b.bot)/2,ey:(b.top+b.bot)/2,t:b.name,v:'$'+nf0.format(b.v)+(upto>=4?' · '+nf0.format(b.v/o.total*100)+'%':''),c:cols[b.i]}));
@@ -533,26 +601,46 @@ function barrelSVG(el, o, opt={}){
     // separar etiquetas: de abajo hacia arriba, mínimo 38 px
     for(let i=1;i<items.length;i++) if(items[i-1].y-items[i].y<38) items[i].y=items[i-1].y-38;
     const minY=yT-ry+14; if(items.length && items[items.length-1].y<minY){ const d=minY-items[items.length-1].y; items.forEach(it=>it.y+=d); for(let i=items.length-2;i>=0;i--) if(items[i].y-items[i+1].y<38) items[i].y=items[i+1].y+38; }
-    items.forEach(it=>{
+    items.forEach((it,j)=>{
       const ex=bx+bw+xo(it.ey)+2;
+      g+=anim?`<g class="lbl" style="--i:${j}">`:only!=null&&j===items.length-1&&only<4?'<g class="lbl" style="--i:0">':'<g>';
       g+=`<circle cx="${ex}" cy="${it.ey}" r="3" style="fill:var(--ink)"/><path d="M${ex},${it.ey} L${lx-18},${it.ey} L${lx-6},${it.y}" fill="none" style="stroke:var(--muted)" stroke-width="1"/>`;
       g+= it.c ? `<rect x="${lx}" y="${it.y-14}" width="10" height="10" style="fill:var(${it.c})"/>` : `<rect x="${lx}" y="${it.y-14}" width="10" height="10" fill="url(#${id}h)" style="stroke:var(--ink)" stroke-width=".8"/>`;
-      g+=`<text x="${lx+16}" y="${it.y-5}" style="font-size:13px;fill:var(--muted)">${it.t}</text><text x="${lx+16}" y="${it.y+13}" style="font-size:16px;font-weight:700;fill:var(--ink)">${it.v}</text>`;
+      g+=`<text x="${lx+16}" y="${it.y-5}" style="font-size:13px;fill:var(--muted)">${it.t}</text><text x="${lx+16}" y="${it.y+13}" style="font-size:16px;font-weight:700;fill:var(--ink)">${it.v}</text></g>`;
     });
   }
-  el.innerHTML=`<svg viewBox="0 0 ${Wd} ${H}" width="${Wd}" height="${H}" style="max-width:100%;height:auto">${g}</svg>`;
+  el.innerHTML=`<svg${anim||only!=null?' class="anim"':''} viewBox="0 0 ${Wd} ${H}" width="${Wd}" height="${H}" style="max-width:100%;height:auto">${g}</svg>`;
 }
 
-let SIM=null, LAST=null;
+let SIM=null, SIM0=null, LAST=null, animNext=true;
 function drawBarrels(){
   if(!LAST) return; const {now,full}=LAST;
-  barrelSVG($('#barrel1'), now, {});
+  barrelSVG($('#barrel1'), now, {anim:animNext}); animNext=false;
   barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<4?'Va en':''});
   const mx=Math.max(posSum(now),posSum(full))*1.04;
   barrelSVG($('#barrel3a'), now, {labels:false, max:mx, H:290});
   barrelSVG($('#barrel3b'), full, {labels:false, max:mx, H:290});
   $('#barrel3a').setAttribute('aria-label','Precio de hoy '+money(now.total));
   $('#barrel3b').setAttribute('aria-label','Precio con tus valores '+money(full.total));
+}
+const calm = () => { try{ return matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } };
+// el precio grande cuenta hasta su valor (desde 0 al cargar; desde el valor anterior al cambiar de combustible)
+function countTo(el, to){
+  const from=el._v; el._v=to; cancelAnimationFrame(el._r);
+  if(calm() || (from!=null && Math.round(from)===Math.round(to))){ el.textContent=money(to); return; }
+  const a=from??0, dur=from==null?1300:600, t0=performance.now();
+  const tick=t=>{ const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3); el.textContent=money(a+(to-a)*e); if(p<1) el._r=requestAnimationFrame(tick); };
+  el._r=requestAnimationFrame(tick);
+}
+// cifras clave de la portada: siempre con los valores de hoy, no con los del simulador
+function renderHero(){
+  const now=parts(fuel,'hoy'), T=SIM0.T, p0=SIM0.pump(fuel,0,false), p1=SIM0.pump(fuel,3,false), d=p1-p0, aj=now.ajuste, m=D.mercado||{};
+  const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+  $('#keys').innerHTML=[
+    ['Próxima fijación, '+longDate(T[3]), cap(move(d)), cls(d), Math.abs(d)<0.5?'si el Brent y el dólar se mantienen':'de '+money(p0)+' a '+money(p1)+' si el Brent y el dólar se mantienen'],
+    ['Ajuste del Estado (MEPCO)', Math.abs(aj)<0.5?'Sin ajuste':(aj<0?'−':'+')+money(Math.abs(aj)), '', aj<-0.5?'por litro de impuesto que hoy no se cobra':aj>0.5?'por litro de impuesto extra para frenar una baja':'esta semana el impuesto no se ajusta'],
+    ['Petróleo Brent', 'US$'+nf2.format(m.brent), '', 'dólar $'+nf0.format(m.fx)+', cierre del '+(m.fecha?ddmmyy(m.fecha):'—')]
+  ].map(([k,v,c,s],i)=>`<div class="rise" style="--d:${.5+i*.12}s"><span class="k">${k}</span><span class="v ${c}">${v}</span><span class="s">${s}</span></div>`).join('');
 }
 function render(){
   SIM=simulate(P);
@@ -561,8 +649,9 @@ function render(){
   const fname = NAME[fuel], fl = fname.toLowerCase().replace('bencina','bencina');
 
   // ---- 1
-  $('#p-now').textContent=money(now.total);
-  $('#p-unit').textContent='por litro · '+fname+' · promedio estimado en la Región Metropolitana';
+  countTo($('#p-now'), now.total);
+  $('#p-unit').textContent='por litro, promedio estimado en la Región Metropolitana';
+  $('#h-q').textContent=`¿Cuánto cuesta hoy un litro de ${fl}?`;
   const taxes = now.impuestos + now.ajuste;
   const adjTxt = Math.abs(now.ajuste)<0.5 ? '' :
     now.ajuste<0 ? ` Esta semana el Estado además cobra <b>${money(-now.ajuste)}</b> menos de impuesto para frenar las alzas; sin esa rebaja el litro costaría ${money(now.total-now.ajuste)}.`
@@ -625,7 +714,7 @@ let flowStep = 0;
 function renderFlow(now, steps){
   const cum=[]; let acc=0; FLOWKEYS.forEach(k=>{acc+=now[k]; cum.push(acc);});
   const cols=['--s-oil','--s-ref','--s-sta','--s-tax'];
-  $('#flow').innerHTML = steps.map(([t,v],i)=>`<button type="button" class="node ${i===flowStep?'on':''} ${i>flowStep?'off':''}" data-step="${i}" aria-pressed="${i===flowStep}">
+  $('#flow').innerHTML = steps.map(([t,v],i)=>`<button type="button" class="node ${i===flowStep?'on':''} ${i>flowStep?'off':''}" data-step="${i}" aria-pressed="${i===flowStep}" style="--c:var(${i<4?cols[i]:'--ink'})">
       <svg viewBox="0 0 32 32" aria-hidden="true">${ICONS[i]}</svg>
       <span class="nm"><span class="sw ${i===4?'adj':''}" ${i<4?`style="background:var(${cols[i]})"`:''}></span> ${t}</span>
       <span class="av">${i===4?(v<0?'−':v>0?'+':''):(i?'+':'')}${money(Math.abs(v))}</span>
@@ -633,24 +722,24 @@ function renderFlow(now, steps){
       <span class="hint">Paso ${i+1} de 5</span>
     </button>`).join('');
   document.querySelectorAll('#flow .node').forEach(b=>b.addEventListener('click',()=>{ flowStep=+b.dataset.step; renderFlow(now,steps); highlightChain();
-    barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<4?'Va en':''}); }));
+    barrelSVG($('#barrel2'), now, {upto:flowStep, topLabel: flowStep<4?'Va en':'', animOnly:flowStep}); }));
   $('#cap-flow').innerHTML = `<b>Diagrama 1.</b> Cómo se va sumando el precio de un litro de ${NAME[fuel].toLowerCase()}. Etapa seleccionada: <b>${steps[flowStep][0].toLowerCase()}</b>.`;
 }
 function highlightChain(){ document.querySelectorAll('#chain li').forEach((li,i)=>li.classList.toggle('hl',i===flowStep)); }
 
-function renderFuture(){
+function renderFuture(anim){
   const T=SIM.T, s=SIM.f[fuel];
   const pump=s.M.map((v,k)=>SIM.pump(fuel,k,false)), pumpF=s.MF.map((v,k)=>SIM.pump(fuel,k,true));
   const fix=T.map((t,i)=>i).filter(i=>i>0&&i%3===0);
   const k1=fix[0], d1=pump[k1]-pump[0];
   const fl=NAME[fuel].toLowerCase();
-  $('#s4-text').innerHTML=`ENAP cambia sus precios cada tres semanas. La próxima fijación es el <b>${longDate(T[k1])}</b>. Con los valores del punto 3, ${art()} ${fl} <b>${move(d1)}</b> ${Math.abs(d1)<0.5?'':`(de ${money(pump[0])} a ${money(pump[k1])})`}.`;
+  $('#s4-text').innerHTML=`ENAP cambia sus precios cada tres semanas. La próxima fijación es el <b>${longDate(T[k1])}</b>. Con los valores del punto 2, ${art()} ${fl} <b>${move(d1)}</b> ${Math.abs(d1)<0.5?'':`(de ${money(pump[0])} a ${money(pump[k1])})`}.`;
   const fr=D.congelamiento||{};
   if(fr.estado){
     const kF=T.findIndex(t=>t>=fr.desde), rb=fuel==='g95'?((fr.rebaja.g93+fr.rebaja.g97)/2):(fr.rebaja||{})[fuel]||0;
     $('#s4-freeze').innerHTML=`<b>Congelamiento propuesto</b> (${esc(fr.estado)}): el Gobierno acordó revertir el alza del 12 de noviembre y no permitir nuevas alzas hasta el ${ddmmyy(fr.hasta)}. Para ${art()} ${fl} significa ${rb? 'bajar '+money(rb)+' por litro desde el '+(kF>0?longDate(T[kF]):'—'):'mantener el precio'}, y después solo mantenerse o bajar. La línea roja del gráfico muestra ese escenario.`;
   } else $('#s4-freeze').textContent='';
-  const geo = lineChart($('#chart'),[{v:pump,col:'--navy',w:2.6,name:'Reglas actuales'},{v:pumpF,col:'--accent',w:2.2,dash:'6 4',name:'Con congelamiento'}],T,fix);
+  const geo = lineChart($('#chart'),[{v:pump,col:'--navy',w:2.6,name:'Reglas actuales'},{v:pumpF,col:'--accent',w:2.2,dash:'6 4',name:'Con congelamiento'}],T,fix,anim);
   const svg=$('#chart svg'), guide=svg.querySelector('#guide');
   const show=i=>{
     i=Math.max(0,Math.min(T.length-1,i));
@@ -663,15 +752,17 @@ function renderFuture(){
   svg.addEventListener('pointerleave',()=>show(k1));
   show(k1);
   $('#leg3').innerHTML=`<span><i style="border-color:var(--navy)"></i>Con las reglas actuales del MEPCO</span><span><i style="border-color:var(--accent);border-top-style:dashed"></i>Si se aprueba el congelamiento</span>`;
-  $('#cap3').innerHTML=`<b>Gráfico 3.</b> Precio estimado por litro de ${fl} en la Región Metropolitana, semana a semana, si el Brent y el dólar se quedan en los valores del punto 3. Las líneas verticales son los días de fijación; toca o pasa el cursor sobre el gráfico para ver cada semana. Modelo propio con la regla de la Ley 20.765.`;
+  $('#cap3').innerHTML=`<b>Gráfico 3.</b> Precio estimado por litro de ${fl} en la Región Metropolitana, semana a semana, si el Brent y el dólar se quedan en los valores del punto 2. Las líneas verticales son los días de fijación; toca o pasa el cursor sobre el gráfico para ver cada semana. Modelo propio con la regla de la Ley 20.765.`;
   const rows=[0,...fix.slice(0,5)];
   $('#t-fix').innerHTML=`<thead><tr><th>Fijación</th><th>Reglas actuales</th><th>Con congelamiento</th></tr></thead><tbody>`+
     rows.map((k,j)=>{const p=j?rows[j-1]:0;const a=pump[k]-pump[p],b=pumpF[k]-pumpF[p];
       return `<tr><td>${k===0?'Hoy ('+ddmmyy(T[0])+')':ddmmyy(T[k])}</td><td>${nf0.format(pump[k])}<span class="d ${cls(a)}">${k?delta(a):'vigente'}</span></td><td>${nf0.format(pumpF[k])}<span class="d ${cls(b)}">${k?delta(b):'vigente'}</span></td></tr>`;}).join('')+`</tbody>`;
 }
 
-function lineChart(el, series, T, marks){
-  const W=900,Hh=310,ml=58,mr=70,mt=28,mb=34;
+// Los gráficos se dibujan al ancho real de la página, para que el texto mantenga 12 px también en celular.
+const chartW = () => Math.max(300, Math.min(900, Math.round($('#app')?.clientWidth || 900)));
+function lineChart(el, series, T, marks, anim){
+  const W=chartW(), nar=W<560, Hh=nar?260:310, ml=nar?42:58, mr=nar?46:70, mt=28, mb=34;
   const all=series.flatMap(s=>s.v); let lo=Math.min(...all),hi=Math.max(...all);
   const span=Math.max(hi-lo,60), pad=span*0.15; lo=lo-pad; hi=hi+pad;
   const st = span<=150?20:span<=400?50:100; lo=Math.floor(lo/st)*st; hi=Math.ceil(hi/st)*st;
@@ -682,13 +773,18 @@ function lineChart(el, series, T, marks){
   marks.forEach(i=>g+=`<line x1="${x(i)}" x2="${x(i)}" y1="${mt}" y2="${Hh-mb}" stroke="var(--muted)" stroke-dasharray="2 4" opacity=".6"/><text x="${x(i)}" y="${Hh-12}" text-anchor="middle">${ddmm(T[i])}</text>`);
   g+=`<text x="${x(0)}" y="${Hh-12}" text-anchor="start">hoy</text>`;
   const labs=[];
-  series.forEach(s=>{
+  // área suave bajo la primera serie y revelado de izquierda a derecha (anim) la primera vez que se ve
+  g+=`<defs><linearGradient id="lcA" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:var(${series[0].col})" stop-opacity=".16"/><stop offset="1" style="stop-color:var(${series[0].col})" stop-opacity="0"/></linearGradient>
+    <clipPath id="lcR"><rect${anim?' class="rvr"':''} x="0" y="0" width="${W}" height="${Hh}"/></clipPath></defs><g clip-path="url(#lcR)">`;
+  series.forEach((s,j)=>{
     let d=''; s.v.forEach((v,i)=>{ d+= i===0?`M${x(0)},${y(v)}`:`H${x(i)}V${y(v)}`; });
+    if(j===0) g+=`<path d="${d}V${Hh-mb}H${x(0)}Z" fill="url(#lcA)"/>`;
     g+=`<path d="${d}" fill="none" stroke="var(${s.col})" stroke-width="${s.w}" ${s.dash?`stroke-dasharray="${s.dash}"`:''}/>`;
     const last=s.v[n-1]; labs.push({y:y(last),t:nf0.format(last),col:s.col});
   });
   labs.sort((a,b)=>a.y-b.y); for(let i=1;i<labs.length;i++) if(labs[i].y-labs[i-1].y<15) labs[i].y=labs[i-1].y+15;
   labs.forEach(l=>g+=`<text x="${W-mr+8}" y="${l.y+4}" style="fill:var(${l.col});font-weight:600">${l.t}</text>`);
+  g+=`</g>`;
   g+=`<line id="guide" x1="0" x2="0" y1="${mt}" y2="${Hh-mb}" stroke="var(--ink)" stroke-width="1" style="opacity:0"/>`;
   el.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Proyección del precio por litro. Toca o pasa el cursor para ver cada semana." style="cursor:crosshair;touch-action:pan-y">${g}</svg>`;
   return {x,W,ml,mr};
@@ -699,7 +795,7 @@ function renderHist(){
   if(!H||!H.filas||!H.filas.length){ el.innerHTML='<p class="muted small">Sin historial cargado.</p>'; return; }
   const rows=H.filas, pick=r=>fuel==='g95'?(r.g93+r.g97)/2:fuel==='diesel'?r.d:r[fuel];
   const vals=rows.map(r=>pick(r)*r.u/1000);
-  const W=900,Hh=250,ml=50,mr=10,mt=12,mb=30;
+  const W=chartW(), nar=W<560, Hh=nar?210:250, ml=nar?40:50, mr=10, mt=12, mb=30;
   let lo=Math.min(0,...vals),hi=Math.max(0,...vals); const st=hi-lo>400?100:50; lo=Math.floor(lo/st)*st; hi=Math.ceil(hi/st)*st;
   const n=vals.length,bw=(W-ml-mr)/n,y=v=>mt+(Hh-mt-mb)*(1-(v-lo)/(hi-lo));
   let g='';
@@ -775,10 +871,18 @@ render = function(){ _render(); renderHist(); };
 
 // ================= datos =================
 let started=false;
-function start(){ $('#loading')?.remove(); build(); prepare(); resetParams(); syncInputs(); renderAll();
-  // los barriles se dibujan al ancho real del contenedor; se rehacen si cambia el ancho
-  let lastW=0, t=null;
-  try{ new ResizeObserver(es=>{ const w=Math.round(es[0].contentRect.width); if(Math.abs(w-lastW)<8) return; lastW=w; clearTimeout(t); t=setTimeout(drawBarrels,80); }).observe($('#app')); }catch(e){}
+function start(){ $('#loading')?.remove(); build(); prepare(); resetParams(); SIM0=simulate({...P}); syncInputs(); renderAll(); renderHero();
+  // las secciones aparecen al bajar; el Gráfico 3 se revela la primera vez que entra en pantalla
+  if('IntersectionObserver' in window && !calm()){
+    document.documentElement.classList.add('js-reveal');
+    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(!e.isIntersecting) return; e.target.classList.add('in'); io.unobserve(e.target);
+      if(e.target.id==='s4') setTimeout(()=>renderFuture(true),250); }),{rootMargin:'0px 0px -10% 0px',threshold:0});
+    document.querySelectorAll('section.step').forEach(s=>io.observe(s));
+  }
+  // barriles y gráficos se dibujan al ancho real del contenedor; se rehacen si cambia el ancho
+  let lastW=Math.round($('#app').clientWidth), t=null;
+  const redraw=()=>{ drawBarrels(); renderFuture(); renderHist(); };
+  try{ new ResizeObserver(es=>{ const w=Math.round(es[0].contentRect.width); if(Math.abs(w-lastW)<8) return; lastW=w; clearTimeout(t); t=setTimeout(redraw,80); }).observe($('#app')); }catch(e){}
 }
 function fail(msg){ const l=$('#loading'); if(l) l.textContent=msg; $('#meta').innerHTML='<span>Sin datos</span>'; }
 (async()=>{

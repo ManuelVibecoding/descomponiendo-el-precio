@@ -4,7 +4,7 @@ Proyecto de Manuel Amenábar. Página estática que explica y proyecta el precio
 
 ## Reglas
 - Todo en español de Chile. Nunca usar emojis, ni en la página, ni en commits, ni en mensajes.
-- Estilo de la página: informe financiero sobrio (blanco, azul marino, rojo óxido solo para impuestos, líneas finas, figuras numeradas con fuente). No volver a estética de "dashboard generado" (mayúsculas condensadas, tarjetas redondeadas, chips, colores neón).
+- Estilo de la página (acordado con Manuel el 13-11-2026): base de informe financiero (Source Serif 4 y Source Sans 3, líneas finas, figuras numeradas con fuente) con una portada visual y animada: barra superior fija con el selector, portada con degradado suave, barril que se llena capa por capa, precio que cuenta, tres cifras clave, secciones que aparecen al bajar y gráfico que se revela. Colores por etapa: azul marino (petróleo), verde petróleo (refinar), ámbar (estación) y rojo óxido solo para impuestos. Las animaciones se apagan con "reducir movimiento". No volver a estética de "dashboard generado" (mayúsculas condensadas, tarjetas redondeadas, chips, colores neón). Cambios de estilo, solo preguntando a Manuel.
 - Pensada para alguien que no sabe del tema: cada término técnico se explica donde aparece o en el glosario.
 - Sin librerías externas. Todo en `index.html`.
 - No inventar datos: cada número de `data/` debe venir de una fuente oficial encontrada en la semana.
@@ -14,6 +14,7 @@ Proyecto de Manuel Amenábar. Página estática que explica y proyecta el precio
 - `data/actual.json`: datos vigentes. Campos clave por combustible (`g93`, `g97`, `diesel`): `paridad` y `bandaSup` en $/L, `cvUTM` (componente variable, UTM/m³), `iebUTM` (6 o 1,5), `mayorista` ($/L con impuestos), `margen` ($/L con IVA, estación RM), `premio` (calibración ENAP), `deriva` (deriva semanal de la banda, $/L), `futPeso` (ponderador de futuros), `base` (últimos 3 precios base de Hacienda).
 - `data/historial.json`: `filas` con `{f, u, g93, g97, d}` (fecha jueves, UTM, componente variable en UTM/m³).
 - `scripts/validar.mjs`: correr después de cada actualización.
+- `scripts/servir.mjs`: servidor local para ver la página (`node scripts/servir.mjs`, luego http://localhost:8000).
 
 ## Publicación (configurada el 13-11-2026)
 - Repositorio: https://github.com/ManuelVibecoding/barril-a-bomba (cuenta ManuelVibecoding, no Manuel-vibecoder).
