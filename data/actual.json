@@ -30,15 +30,15 @@
     }
   ],
   "mercado": {
-    "fecha": "2026-11-13",
-    "brent": 95.84,
-    "wti": 88.56,
-    "rbob": 2.6214,
-    "ulsd": 4.2585,
+    "fecha": "2026-11-16",
+    "brent": 92.44,
+    "wti": 85.72,
+    "rbob": 2.5379,
+    "ulsd": 4.0818,
     "fx": 984.49,
     "nota": "Brent, WTI, RBOB y ULSD: futuros, cierre diario (Yahoo Finance). Dólar observado: SII. Se actualizan solos cada día hábil.",
     "fxFecha": "2026-11-12",
-    "actualizado": "2026-11-14T17:02:15.325Z"
+    "actualizado": "2026-11-17T19:48:29.345Z"
   },
   "refBanda": {
     "fecha": "2026-11-12",
@@ -54,7 +54,7 @@
       "cvUTM": -0.3852,
       "iebUTM": 6,
       "mayorista": 1502.3,
-      "margen": 81.1,
+      "margen": 81.4,
       "premio": 7.1,
       "base": [
         {
@@ -79,7 +79,7 @@
       "cvUTM": -1.445,
       "iebUTM": 6,
       "mayorista": 1579.3,
-      "margen": 100.2,
+      "margen": 101.7,
       "premio": 7.1,
       "base": [
         {
@@ -104,7 +104,7 @@
       "cvUTM": -2.2784,
       "iebUTM": 1.5,
       "mayorista": 1516.9,
-      "margen": 88.5,
+      "margen": 89.8,
       "premio": 14.1,
       "base": [
         {
@@ -122,7 +122,7 @@
       ]
     },
     "g95": {
-      "margen": 87.2
+      "margen": 88.7
     }
   },
   "proximasFijaciones": [
@@ -145,7 +145,7 @@
     }
   },
   "supuestos": [
-    "Precios en bomba = promedio de la Región Metropolitana según Bencina en Línea (CNE), con las estaciones que informaron su precio desde el 12-11-2026 (389 en la 93). El margen de distribución y estación es ese promedio menos el precio mayorista estimado. Cada estación cobra distinto: en la RM, 9 de cada 10 estaciones venden la 93 entre $1.526 y $1.633.",
+    "Precios en bomba = promedio de la Región Metropolitana según Bencina en Línea (CNE), con las estaciones que informaron su precio desde el 12-11-2026 (405 en la 93). El margen de distribución y estación es ese promedio menos el precio mayorista estimado. Cada estación cobra distinto: en la RM, 9 de cada 10 estaciones venden la 93 entre $1.526 y $1.633.",
     "La paridad usa precios Argus que no son públicos. El modelo la reemplaza por el Brent (futuros) más un diferencial que se recalibra con cada informe de la CNE. Por eso la división entre \"petróleo crudo\" y \"refinarlo y traerlo\" es una estimación; la suma de ambas sí corresponde al costo de importar oficial.",
     "La banda de referencia se proyecta con la deriva semanal que informa la CNE y el peso de los futuros del Brent. Hacienda fija por decreto los parámetros del precio de referencia (semanas de historia y de futuros, y su ponderación) y puede cambiarlos.",
     "Según el OCEC-UDP, desde el 30-07-2026 el Ejecutivo interpretó la norma del MEPCO de modo que en algunas fijaciones no se aplicaron el umbral de variación ni la banda. La proyección de esta página sigue la regla de la ley (umbral de 2,4% y banda de ±5%), así que puede desviarse si eso se repite.",
@@ -161,31 +161,31 @@
     "Bencina en Línea (CNE), precios por estación de servicio (api.bencinaenlinea.cl), 13-11-2026"
   ],
   "estaciones": {
-    "fecha": "2026-11-14",
+    "fecha": "2026-11-17",
     "desde": "2026-11-12",
     "n": {
-      "g93": 389,
-      "g95": 389,
-      "g97": 366,
-      "diesel": 391
+      "g93": 405,
+      "g95": 405,
+      "g97": 377,
+      "diesel": 408
     },
     "promedio": {
-      "g93": 1583,
-      "g95": 1628,
-      "g97": 1680,
-      "diesel": 1605
+      "g93": 1584,
+      "g95": 1630,
+      "g97": 1681,
+      "diesel": 1607
     },
     "p05": {
       "g93": 1526,
       "g95": 1568,
       "g97": 1608,
-      "diesel": 1563
+      "diesel": 1567
     },
     "p95": {
       "g93": 1633,
       "g95": 1682,
       "g97": 1732,
-      "diesel": 1648
+      "diesel": 1649
     },
     "marcas": {
       "copec": {
@@ -195,16 +195,16 @@
         "diesel": 1606
       },
       "shell": {
-        "g93": 1586,
-        "g95": 1628,
-        "g97": 1679,
-        "diesel": 1603
+        "g93": 1585,
+        "g95": 1632,
+        "g97": 1682,
+        "diesel": 1606
       },
       "aramco": {
-        "g93": 1587,
-        "g95": 1636,
-        "g97": 1687,
-        "diesel": 1613
+        "g93": 1590,
+        "g95": 1638,
+        "g97": 1688,
+        "diesel": 1614
       }
     }
   }
