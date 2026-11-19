@@ -30,21 +30,21 @@
     },
     {
       "lunes": "2026-11-16",
-      "brent": 92.79,
+      "brent": 92.51,
       "fx": 998.98,
       "parcial": true
     }
   ],
   "mercado": {
-    "fecha": "2026-11-17",
-    "brent": 93.14,
-    "wti": 86.01,
-    "rbob": 2.5349,
-    "ulsd": 4.0475,
+    "fecha": "2026-11-18",
+    "brent": 91.95,
+    "wti": 83.26,
+    "rbob": 2.4819,
+    "ulsd": 3.9723,
     "fx": 996.68,
     "nota": "Brent, WTI, RBOB y ULSD: futuros, cierre diario (Yahoo Finance). Dólar observado: SII. Se actualizan solos cada día hábil.",
     "fxFecha": "2026-11-18",
-    "actualizado": "2026-11-18T19:23:31.281Z"
+    "actualizado": "2026-11-19T19:28:13.125Z"
   },
   "refBanda": {
     "fecha": "2026-11-12",
@@ -167,51 +167,21 @@
     "Bencina en Línea (CNE), precios por estación de servicio (api.bencinaenlinea.cl), 13-11-2026"
   ],
   "estaciones": {
-    "fecha": "2026-11-18",
+    "fecha": "2026-11-19",
     "desde": "2026-11-12",
     "n": {
-      "g93": 411,
-      "g95": 411,
-      "g97": 382,
-      "diesel": 414
+      "g93": 49,
+      "g95": 49,
+      "g97": 39,
+      "diesel": 49
     },
-    "promedio": {
-      "g93": 1582,
-      "g95": 1629,
-      "g97": 1680,
-      "diesel": 1605
-    },
-    "p05": {
-      "g93": 1527,
-      "g95": 1568,
-      "g97": 1608,
-      "diesel": 1564
-    },
-    "p95": {
-      "g93": 1633,
-      "g95": 1682,
-      "g97": 1732,
-      "diesel": 1648
-    },
+    "promedio": {},
+    "p05": {},
+    "p95": {},
     "marcas": {
-      "copec": {
-        "g93": 1583,
-        "g95": 1628,
-        "g97": 1678,
-        "diesel": 1606
-      },
-      "shell": {
-        "g93": 1582,
-        "g95": 1632,
-        "g97": 1679,
-        "diesel": 1603
-      },
-      "aramco": {
-        "g93": 1590,
-        "g95": 1638,
-        "g97": 1688,
-        "diesel": 1614
-      }
+      "copec": {},
+      "shell": {},
+      "aramco": {}
     }
   }
 }
