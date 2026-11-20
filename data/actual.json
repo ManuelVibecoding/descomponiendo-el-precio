@@ -44,7 +44,7 @@
     "fx": 996.68,
     "nota": "Brent, WTI, RBOB y ULSD: futuros, cierre diario (Yahoo Finance). Dólar observado: SII. Se actualizan solos cada día hábil.",
     "fxFecha": "2026-11-18",
-    "actualizado": "2026-11-20T15:37:31.564Z"
+    "actualizado": "2026-11-20T19:04:37.934Z"
   },
   "refBanda": {
     "fecha": "2026-11-19",
@@ -60,7 +60,7 @@
       "cvUTM": 0.5369,
       "iebUTM": 6,
       "mayorista": 1463.6,
-      "margen": 81.1,
+      "margen": 81.2,
       "premio": 7.1,
       "base": [
         {
@@ -85,7 +85,7 @@
       "cvUTM": -0.2968,
       "iebUTM": 6,
       "mayorista": 1540.6,
-      "margen": 101.6,
+      "margen": 101.7,
       "premio": 7.1,
       "base": [
         {
@@ -110,7 +110,7 @@
       "cvUTM": -3.1353,
       "iebUTM": 1.5,
       "mayorista": 1375,
-      "margen": 90.3,
+      "margen": 89.1,
       "premio": 14.1,
       "base": [
         {
@@ -180,7 +180,7 @@
       "g93": 1545,
       "g95": 1591,
       "g97": 1642,
-      "diesel": 1465
+      "diesel": 1464
     },
     "p05": {
       "g93": 1487,
@@ -192,7 +192,7 @@
       "g93": 1594,
       "g95": 1643,
       "g97": 1693,
-      "diesel": 1507
+      "diesel": 1506
     },
     "marcas": {
       "copec": {
@@ -204,8 +204,8 @@
       "shell": {
         "g93": 1546,
         "g95": 1592,
-        "g97": 1643,
-        "diesel": 1465
+        "g97": 1644,
+        "diesel": 1461
       },
       "aramco": {
         "g93": 1550,
