@@ -35,15 +35,15 @@
     }
   ],
   "mercado": {
-    "fecha": "2026-11-20",
-    "brent": 92.57,
-    "wti": 83.98,
-    "rbob": 2.5027,
-    "ulsd": 3.9216,
+    "fecha": "2026-11-23",
+    "brent": 89.37,
+    "wti": 80.17,
+    "rbob": 2.4054,
+    "ulsd": 3.6975,
     "fx": 996.68,
     "nota": "Brent, WTI, RBOB y ULSD: futuros, cierre diario (Yahoo Finance). Dólar observado: SII. Se actualizan solos cada día hábil.",
     "fxFecha": "2026-11-18",
-    "actualizado": "2026-11-21T17:56:59.989Z"
+    "actualizado": "2026-11-24T21:08:30.175Z"
   },
   "refBanda": {
     "fecha": "2026-11-19",
@@ -84,7 +84,7 @@
       "cvUTM": -0.2968,
       "iebUTM": 6,
       "mayorista": 1540.6,
-      "margen": 101.6,
+      "margen": 101.5,
       "premio": 7.1,
       "base": [
         {
@@ -109,7 +109,7 @@
       "cvUTM": -3.1353,
       "iebUTM": 1.5,
       "mayorista": 1375,
-      "margen": 90.3,
+      "margen": 90.2,
       "premio": 14.1,
       "base": [
         {
@@ -127,7 +127,7 @@
       ]
     },
     "g95": {
-      "margen": 88.7
+      "margen": 88.6
     }
   },
   "proximasFijaciones": [
@@ -150,7 +150,7 @@
     }
   },
   "supuestos": [
-    "Precios en bomba = promedio de la Región Metropolitana según Bencina en Línea (CNE), con las estaciones que informaron su precio desde el 19-11-2026 (394 en la 93). El margen de distribución y estación es ese promedio menos el precio mayorista estimado. Cada estación cobra distinto: en la RM, 9 de cada 10 estaciones venden la 93 entre $1.488 y $1.594.",
+    "Precios en bomba = promedio de la Región Metropolitana según Bencina en Línea (CNE), con las estaciones que informaron su precio desde el 19-11-2026 (399 en la 93). El margen de distribución y estación es ese promedio menos el precio mayorista estimado. Cada estación cobra distinto: en la RM, 9 de cada 10 estaciones venden la 93 entre $1.488 y $1.594.",
     "La paridad usa precios Argus que no son públicos. El modelo la reemplaza por el Brent (futuros) más un diferencial que se recalibra con cada informe de la CNE. Por eso la división entre \"petróleo crudo\" y \"refinarlo y traerlo\" es una estimación; la suma de ambas sí corresponde al costo de importar oficial.",
     "La banda de referencia se proyecta con la deriva semanal que informa la CNE y el peso de los futuros del Brent. Hacienda fija por decreto los parámetros del precio de referencia (semanas de historia y de futuros, y su ponderación) y puede cambiarlos.",
     "Según el OCEC-UDP, desde el 30-07-2026 el Ejecutivo interpretó la norma del MEPCO de modo que en algunas fijaciones no se aplicaron el umbral de variación ni la banda. La proyección de esta página sigue la regla de la ley (umbral de 2,4% y banda de ±5%), así que puede desviarse si eso se repite.",
@@ -167,13 +167,13 @@
     "Ley 21.857 (Diario Oficial, 17-11-2026), que contiene las alzas de la gasolina y el diésel"
   ],
   "estaciones": {
-    "fecha": "2026-11-21",
+    "fecha": "2026-11-24",
     "desde": "2026-11-19",
     "n": {
-      "g93": 394,
-      "g95": 394,
-      "g97": 370,
-      "diesel": 399
+      "g93": 399,
+      "g95": 400,
+      "g97": 373,
+      "diesel": 407
     },
     "promedio": {
       "g93": 1545,
@@ -197,8 +197,8 @@
       "copec": {
         "g93": 1544,
         "g95": 1589,
-        "g97": 1640,
-        "diesel": 1465
+        "g97": 1639,
+        "diesel": 1464
       },
       "shell": {
         "g93": 1546,
@@ -207,10 +207,10 @@
         "diesel": 1465
       },
       "aramco": {
-        "g93": 1550,
-        "g95": 1598,
-        "g97": 1649,
-        "diesel": 1473
+        "g93": 1551,
+        "g95": 1599,
+        "g97": 1650,
+        "diesel": 1474
       }
     }
   }
