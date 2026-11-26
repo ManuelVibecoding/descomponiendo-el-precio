@@ -1,6 +1,6 @@
 {
-  "actualizado": "2026-11-20T12:00:00-03:00",
-  "vigencia": "2026-11-19",
+  "actualizado": "2026-11-26T19:00:00-03:00",
+  "vigencia": "2026-11-26",
   "utm": 72440,
   "semanas": [
     {
@@ -43,29 +43,25 @@
     "fx": 996.68,
     "nota": "Brent, WTI, RBOB y ULSD: futuros, cierre diario (Yahoo Finance). Dólar observado: SII. Se actualizan solos cada día hábil.",
     "fxFecha": "2026-11-18",
-    "actualizado": "2026-11-26T20:08:34.480Z"
+    "actualizado": "2026-11-26T21:53:03.399Z"
   },
   "refBanda": {
-    "fecha": "2026-11-19",
-    "brent": 91.98,
+    "fecha": "2026-11-26",
+    "brent": 94.61,
     "nota": "Brent del último informe CNE; la proyección mueve la banda respecto de este valor."
   },
   "combustibles": {
     "g93": {
-      "paridad": 861.1,
-      "bandaSup": 848.7,
+      "paridad": 813.7,
+      "bandaSup": 832,
       "deriva": 0.09,
       "futPeso": 0.4,
-      "cvUTM": 0.5369,
+      "cvUTM": 1.3596,
       "iebUTM": 6,
       "mayorista": 1463.6,
       "margen": 82,
       "premio": 7.1,
       "base": [
-        {
-          "f": "2026-11-05",
-          "v": 1602
-        },
         {
           "f": "2026-11-12",
           "v": 1530.2
@@ -73,24 +69,24 @@
         {
           "f": "2026-11-19",
           "v": 1424.7
+        },
+        {
+          "f": "2026-11-26",
+          "v": 1365.1
         }
       ]
     },
     "g97": {
-      "paridad": 978.4,
-      "bandaSup": 924.5,
+      "paridad": 921.6,
+      "bandaSup": 910,
       "deriva": 3.45,
       "futPeso": 0.2,
-      "cvUTM": -0.2968,
+      "cvUTM": 0.5736,
       "iebUTM": 6,
       "mayorista": 1540.6,
       "margen": 102.6,
       "premio": 7.1,
       "base": [
-        {
-          "f": "2026-11-05",
-          "v": 1775
-        },
         {
           "f": "2026-11-12",
           "v": 1684
@@ -98,24 +94,24 @@
         {
           "f": "2026-11-19",
           "v": 1562.1
+        },
+        {
+          "f": "2026-11-26",
+          "v": 1499
         }
       ]
     },
     "diesel": {
-      "paridad": 1269.3,
-      "bandaSup": 1142.2,
+      "paridad": 1215.5,
+      "bandaSup": 1130.4,
       "deriva": 8.64,
       "futPeso": 0.23,
-      "cvUTM": -3.1353,
+      "cvUTM": -2.15,
       "iebUTM": 1.5,
       "mayorista": 1375,
       "margen": 90.9,
       "premio": 14.1,
       "base": [
-        {
-          "f": "2026-11-05",
-          "v": 1760.9
-        },
         {
           "f": "2026-11-12",
           "v": 1682
@@ -123,6 +119,10 @@
         {
           "f": "2026-11-19",
           "v": 1602.1
+        },
+        {
+          "f": "2026-11-26",
+          "v": 1530.7
         }
       ]
     },
@@ -140,7 +140,7 @@
   ],
   "congelamiento": {
     "estado": "ley vigente: Ley 21.857, publicada en el Diario Oficial el 17-11-2026",
-    "detalle": "Acuerdo del 12-11 con gremios de camioneros, aprobado por el Congreso. Desde el jueves 19-11 ENAP aplicó la rebaja: -$38,7/L en las gasolinas 93 y 97 y -$141,9/L en el diésel (ya incluida en el precio mayorista). Desde ahí los precios solo pueden mantenerse o bajar hasta el 07-04-2027. La rebaja va por fuera del impuesto específico que publica el SII.",
+    "detalle": "Acuerdo del 12-11 con gremios de camioneros, aprobado por el Congreso. Desde el jueves 19-11 ENAP aplicó la rebaja: -$38,7/L en las gasolinas 93 y 97 y -$141,9/L en el diésel (ya incluida en el precio mayorista). Desde ahí los precios solo pueden mantenerse o bajar hasta el 07-04-2027: el 26-11 el impuesto específico del SII subió, pero ENAP informó variación $0 en 93, 97 y diésel, porque la ley toma como techo los precios del 05-11 (el diésel, $100/L bajo ese valor). La rebaja va por fuera del impuesto específico que publica el SII.",
     "desde": "2026-11-19",
     "hasta": "2027-04-07",
     "rebaja": {
@@ -159,59 +159,30 @@
   "fuentes": [
     "CNE, informes técnicos MEPCO y decretos de paridad y referencia (Diario Oficial)",
     "SII, componentes del impuesto específico 2026 y UTM",
-    "ENAP, informe semanal de precios estimados (18-11-2026)",
+    "ENAP, informe semanal de precios estimados (25-11-2026)",
     "Banco Central / SII, dólar observado",
     "OCEC-UDP, boletines MEPCO",
     "Yahoo Finance (futuros) para Brent, WTI, RBOB y ULSD, y SII para el dólar observado: actualización automática cada día hábil",
     "Bencina en Línea (CNE), precios por estación de servicio (api.bencinaenlinea.cl), 13-11-2026",
-    "Ley 21.857 (Diario Oficial, 17-11-2026), que contiene las alzas de la gasolina y el diésel"
+    "Ley 21.857 (Diario Oficial, 17-11-2026), que contiene las alzas de la gasolina y el diésel",
+    "Ministerio de Energía, decretos exentos 289 y 290 de 2026 (Diario Oficial, 25-11-2026): paridad y precios de referencia desde el 26-11"
   ],
   "estaciones": {
     "fecha": "2026-11-26",
-    "desde": "2026-11-19",
+    "desde": "2026-11-26",
     "n": {
-      "g93": 394,
-      "g95": 395,
-      "g97": 371,
-      "diesel": 402
+      "g93": 9,
+      "g95": 9,
+      "g97": 6,
+      "diesel": 10
     },
-    "promedio": {
-      "g93": 1546,
-      "g95": 1592,
-      "g97": 1643,
-      "diesel": 1466
-    },
-    "p05": {
-      "g93": 1491,
-      "g95": 1529,
-      "g97": 1575,
-      "diesel": 1425
-    },
-    "p95": {
-      "g93": 1595,
-      "g95": 1644,
-      "g97": 1694,
-      "diesel": 1507
-    },
+    "promedio": {},
+    "p05": {},
+    "p95": {},
     "marcas": {
-      "copec": {
-        "g93": 1544,
-        "g95": 1589,
-        "g97": 1640,
-        "diesel": 1464
-      },
-      "shell": {
-        "g93": 1547,
-        "g95": 1593,
-        "g97": 1644,
-        "diesel": 1467
-      },
-      "aramco": {
-        "g93": 1551,
-        "g95": 1599,
-        "g97": 1650,
-        "diesel": 1474
-      }
+      "copec": {},
+      "shell": {},
+      "aramco": {}
     }
   }
 }
