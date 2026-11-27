@@ -43,7 +43,7 @@
     "fx": 996.68,
     "nota": "Brent, WTI, RBOB y ULSD: futuros, cierre diario (Yahoo Finance). Dólar observado: SII. Se actualizan solos cada día hábil.",
     "fxFecha": "2026-11-18",
-    "actualizado": "2026-11-26T21:53:03.399Z"
+    "actualizado": "2026-11-27T19:54:58.274Z"
   },
   "refBanda": {
     "fecha": "2026-11-26",
@@ -168,13 +168,13 @@
     "Ministerio de Energía, decretos exentos 289 y 290 de 2026 (Diario Oficial, 25-11-2026): paridad y precios de referencia desde el 26-11"
   ],
   "estaciones": {
-    "fecha": "2026-11-26",
+    "fecha": "2026-11-27",
     "desde": "2026-11-26",
     "n": {
-      "g93": 9,
-      "g95": 9,
-      "g97": 6,
-      "diesel": 10
+      "g93": 11,
+      "g95": 13,
+      "g97": 9,
+      "diesel": 15
     },
     "promedio": {},
     "p05": {},
